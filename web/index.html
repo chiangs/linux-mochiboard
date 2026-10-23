@@ -7,8 +7,17 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" type="image/png" href="stamps/mochi.png">
+<!-- inside the Linux app (Electron): tell the page right away, so it makes room for the window buttons -->
+<script>if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.mb && window.mbWindow) document.documentElement.classList.add('native', 'linux');</script>
 </head>
 <body>
+<!-- the window has no title bar of its own: these are its buttons, and a strip at the top of the sidebar to drag it by -->
+<div class="win-ctl" id="winCtl" aria-label="Window">
+  <button class="wc-close" title="Close" onclick="mbWindow.close()"><svg viewBox="0 0 10 10"><path d="M2.5 2.5l5 5M7.5 2.5l-5 5"/></svg></button>
+  <button class="wc-min" title="Minimize" onclick="mbWindow.minimize()"><svg viewBox="0 0 10 10"><path d="M2 5h6"/></svg></button>
+  <button class="wc-max" title="Maximize" onclick="mbWindow.maximize()"><svg viewBox="0 0 10 10"><path d="M2.5 6.5v-4h4M7.5 3.5v4h-4"/></svg></button>
+</div>
+<div class="win-drag" id="winDrag"></div>
 <!-- the wobbly hand-cut edge every frame wears -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <filter id="wob" x="-4%" y="-4%" width="108%" height="108%">

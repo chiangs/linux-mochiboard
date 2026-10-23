@@ -1,0 +1,55 @@
+{
+  "name": "mochiboard",
+  "productName": "Mochiboard",
+  "version": "1.4.1",
+  "description": "A cozy planning canvas with Mochi inside, for Linux",
+  "homepage": "https://github.com/chiangs/linux-mochiboard",
+  "license": "MIT",
+  "author": "Jessa Wolfe (original Mac app), chiangs (Linux port)",
+  "main": "linux/main.js",
+  "desktopName": "mochiboard.desktop",
+  "scripts": {
+    "start": "electron . --ozone-platform-hint=auto",
+    "check": "node --check linux/*.js && node tests/run.js",
+    "dist": "electron-builder --linux AppImage"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "playwright": "^1.63.0"
+  },
+  "build": {
+    "appId": "io.github.chiangs.mochiboard",
+    "productName": "Mochiboard",
+    "files": [
+      "linux/**",
+      "web/**",
+      "assets/icon.png",
+      "package.json",
+      "LICENSE"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office",
+      "icon": "assets/icon.png",
+      "executableArgs": [
+        "--ozone-platform-hint=auto"
+      ],
+      "desktop": {
+        "entry": {
+          "Name": "Mochiboard",
+          "Comment": "A cozy planning canvas with Mochi inside",
+          "StartupWMClass": "Mochiboard"
+        }
+      }
+    },
+    "appImage": {
+      "artifactName": "Mochiboard-${arch}.AppImage"
+    },
+    "directories": {
+      "output": "build/release"
+    }
+  }
+}

@@ -161,6 +161,15 @@ body.dark .card .chip { background: rgba(40, 37, 46, .94); color: #f3eef6; box-s
 html.native .side { top: 38px; }   /* below the window buttons */
 html.native .top { top: 18px; }
 
+/* the Linux app's window buttons and drag strip, where the Mac's sit (the window has no title bar) */
+.win-ctl, .win-drag { display: none; }
+html.linux .win-ctl { display: flex; gap: 8px; position: fixed; left: 14px; top: 13px; z-index: 10000; -webkit-app-region: no-drag; }
+html.linux .win-ctl button { width: 12px; height: 12px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: default; box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .12); }
+html.linux .win-ctl .wc-close { background: #ff5f57; } html.linux .win-ctl .wc-min { background: #febc2e; } html.linux .win-ctl .wc-max { background: #28c840; }
+html.linux .win-ctl svg { width: 8px; height: 8px; fill: none; stroke: rgba(0, 0, 0, .55); stroke-width: 1.3; stroke-linecap: round; opacity: 0; }
+html.linux .win-ctl:hover svg { opacity: 1; }
+html.linux .win-drag { display: block; position: fixed; left: 76px; top: 0; width: 156px; height: 36px; z-index: 9999; -webkit-app-region: drag; }
+
 /* Mochi's helpers in the sidebar */
 .conns { display: flex; flex-direction: column; gap: 2px; }
 .conn { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 10px; font-size: 13px; }
