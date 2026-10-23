@@ -22,10 +22,14 @@ jobs:
         run: xvfb-run -a node tests/smoke.js
       - name: Install, run the installed copy, uninstall
         run: |
+          # each part's output goes to a file; on failure its last lines become annotations, so they're readable without the full log
+          report() { echo "::error title=$1::$(tail -c 3000 "$2" | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')"; exit 1; }
           useradd -m tester && cp -r . /home/tester/mb && chown -R tester /home/tester/mb
-          su tester -c 'cd ~/mb && ./install.sh --yes --no-open'
-          su tester -c 'cd ~/mb && MB_APP=$HOME/.local/lib/mochiboard/app xvfb-run -a node tests/smoke.js'
-          su tester -c 'cd ~/mb && ./uninstall.sh --purge' && test ! -e /home/tester/.local/bin/mochiboard
+          su tester -c 'cd ~/mb && ./install.sh --yes --no-open' > install.log 2>&1 || report install install.log
+          cat /home/tester/.local/lib/mochiboard/app/install.json; electron --version || true
+          su tester -c 'cd ~/mb && MB_APP=$HOME/.local/lib/mochiboard/app xvfb-run -a node tests/smoke.js' > smoke.log 2>&1 || report installed-smoke smoke.log
+          su tester -c 'cd ~/mb && ./uninstall.sh --purge' > uninstall.log 2>&1 || report uninstall uninstall.log
+          test ! -e /home/tester/.local/bin/mochiboard
       - name: Build the AppImage
         run: npx electron-builder --linux AppImage --x64 --publish never
       - uses: actions/upload-artifact@v4
