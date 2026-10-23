@@ -6,7 +6,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    container:
+      image: archlinux:latest
+      options: --shm-size=1g   # Chromium shares big messages through /dev/shm; Docker's default 64 MB is far below any desktop's
     steps:
       - name: Install packages
         run: |
@@ -26,7 +28,7 @@ jobs:
           report() { echo "::error title=$1::$(tail -c 3000 "$2" | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')"; exit 1; }
           useradd -m tester && cp -r . /home/tester/mb && chown -R tester /home/tester/mb
           su tester -c 'cd ~/mb && ./install.sh --yes --no-open' > install.log 2>&1 || report install install.log
-          cat /home/tester/.local/lib/mochiboard/app/install.json; electron --version || true
+          cat /home/tester/.local/lib/mochiboard/app/install.json; echo "::notice title=Arch electron::$(electron --version 2>&1 | tail -1)"
           su tester -c 'cd ~/mb && MB_APP=$HOME/.local/lib/mochiboard/app xvfb-run -a node tests/smoke.js' > smoke.log 2>&1 || report installed-smoke smoke.log
           su tester -c 'cd ~/mb && ./uninstall.sh --purge' > uninstall.log 2>&1 || report uninstall uninstall.log
           test ! -e /home/tester/.local/bin/mochiboard
