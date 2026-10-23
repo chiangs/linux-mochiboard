@@ -35,6 +35,10 @@ echo " [BLANK_AUDIO] hello from whisper"
     const board = { id: 'smoke1', name: 'Smoke', color: 'mint', cards: [{ id: 'c1', type: 'note', x: 0, y: 0, w: 220, h: 140, text: 'hi', bad: NaN }] };
     res.save = await MB.save(board);
     res.load = (await MB.load('smoke1')).cards[0].bad;
+    // a big board (pictures make them many MB) goes there and back intact
+    const big = 'x'.repeat(20e6); let t = performance.now();
+    await MB.save({ id: 'big', name: 'Big', cards: [{ id: 'b', type: 'image', src: big }] }); const back = await MB.load('big');
+    res.big = back.cards[0].src.length === big.length; res.bigMs = Math.round(performance.now() - t); await MB.remove('big');
     res.list = (await MB.list()).some(b => b.id === 'smoke1');
     res.folders = await MB.saveFolders([{ id: 'f', name: 'F' }]) && (await MB.folders()).length;
     res.fonts = (await MB.fonts()).length;
@@ -80,7 +84,7 @@ echo " [BLANK_AUDIO] hello from whisper"
   console.log(JSON.stringify({ ...r, prompt: r.prompt.slice(0, 120) + '…', hooksOff: r.hooksOff.slice(-160), hooksOn: r.hooksOn.slice(-120) }, null, 1));
   await app.close();
   const ok = r.native && r.linux && r.save && r.load === 0 && r.list && r.folders === 1 && r.fonts > 0 && r.unknown === 'unknown op nope' && r.range[0] === 206 && r.range[1] === 100
-    && r.pngSize[0] === 600 && r.pdfPages >= 2 && files.includes('shot.pdf') && files.includes('Doc.docx') && r.boardOnDisk && !errors.length
+    && r.pngSize[0] === 600 && r.pdfPages >= 2 && files.includes('shot.pdf') && files.includes('Doc.docx') && r.boardOnDisk && r.big && !errors.length
     && r.conn.mobbin === true && r.conn.higgsfield === false && JSON.parse(r.ask).say === 'hi from fake claude' && r.usage2.asks === 1 && r.usage2.tokensIn === 15
     && r.prompt.includes('The person asked you: sort these') && r.prompt.includes('"n":0') && r.prompt.includes('Higgsfield is TURNED OFF') && r.args.includes('mcp__claude_ai_Mobbin__search_screens')
     && r.hooksOff.includes('disableAllHooks') && !r.hooksOn.includes('disableAllHooks')

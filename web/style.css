@@ -352,10 +352,6 @@ html.native .home-in { padding-top: 40px; }
 .side { bottom: 50px; }
 .keys { left: 22px; bottom: 16px; max-width: none; flex-wrap: nowrap; white-space: nowrap; gap: 10px; font-size: 11px; }
 
-.linkbox { position: absolute; left: calc(50% + 8px); top: 74px; transform: translateX(-50%) scale(.97); z-index: 30; display: flex; gap: 6px; width: 420px; padding: 6px; border-radius: 999px; background: #fff; box-shadow: 0 16px 40px rgba(120, 80, 120, .22); opacity: 0; pointer-events: none; transition: opacity .18s, transform .22s cubic-bezier(.2, .8, .3, 1); }
-.linkbox.on { opacity: 1; pointer-events: auto; transform: translateX(-50%); }
-.linkbox input { flex: 1; min-width: 0; padding: 9px 14px; border: 0; outline: none; font: 500 13.5px/1 var(--font); color: var(--ink); background: none; user-select: text; -webkit-user-select: text; }
-.linkbox button { padding: 9px 16px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font: 600 12.5px/1 var(--font); cursor: pointer; }
 
 /* the toolbar is icons only; its name floats up on hover */
 .tools { gap: 2px; }
@@ -380,7 +376,6 @@ html.native .home-in { padding-top: 40px; }
 .selbar .sb-ic svg { width: 18px; height: 18px; }
 .selbar button.on { background: var(--blush); }
 .selbar .sb-label { font: 600 12px/1 var(--font); color: var(--ink-soft); padding: 0 8px 0 10px; }
-.linkbox { top: auto; bottom: 84px; }
 .top { max-width: calc(100% - var(--side) - 340px); }
 .side { bottom: 84px; }
 .keys { left: 22px; bottom: 14px; width: var(--side); flex-wrap: wrap; white-space: normal; gap: 4px 10px; }
@@ -634,7 +629,7 @@ body.calm .card.stamp .st img, body.calm .sp-grid img, body.calm .ws-ring img { 
 .row-menu .rm-sep { height: 1px; margin: 4px 6px; background: #f0e9f1; }
 /* while exporting: just the cards, no app around them */
 body.exporting .side, body.exporting .dock, body.exporting .tray, body.exporting .top, body.exporting .keys, body.exporting .ghost, body.exporting .grid,
-body.exporting .marquee, body.exporting .shapepick, body.exporting .wheel-stamps, body.exporting .stamp-pick, body.exporting .linkbox { visibility: hidden !important; }
+body.exporting .marquee, body.exporting .shapepick, body.exporting .wheel-stamps, body.exporting .stamp-pick { visibility: hidden !important; }
 body.exporting .card .handle, body.exporting .card .knob, body.exporting .card .chip { display: none !important; }
 body.exporting .card.sel::after { display: none; }
 
@@ -691,7 +686,7 @@ body.exporting .card.sel::after { display: none; }
 /* ---------- dark mode ---------- */
 body.dark { --ink: #ece8f0; --ink-soft: #a9a1b1; --ink-faint: #6f6877; --blush: #3a2c37; --dot: #35303c; --surface: #26222b; --surface-2: #302b35; color-scheme: dark; }
 body.dark, body.dark .stage { background: #1c1920; }
-body.dark .box, body.dark .tools, body.dark .tray, body.dark .selbar, body.dark .drawbar, body.dark .cpop, body.dark .capture, body.dark .linkbox, body.dark .shapepick, body.dark .wheel-stamps,
+body.dark .box, body.dark .tools, body.dark .tray, body.dark .selbar, body.dark .drawbar, body.dark .cpop, body.dark .capture, body.dark .shapepick, body.dark .wheel-stamps,
 body.dark .stamp-pick, body.dark .row-menu, body.dark .cover-menu, body.dark .set-panel, body.dark .docview, body.dark .tile, body.dark .tile.folder .paper, body.dark .tile.project .mf,
 body.dark .tray-item, body.dark .ghost, body.dark kbd, body.dark .home-back, body.dark .sc-mark { background: var(--surface) !important; color: var(--ink); }
 body.dark .box { background: rgba(38, 34, 43, .92) !important; }
@@ -705,7 +700,7 @@ body.dark .set-body section, body.dark .row-menu .rm-sep { border-color: #36313c
 body.dark .pill-btn, body.dark .tile.add { border-color: #4a4452; }
 body.dark .dv-back, body.dark .db-done { background: #ece8f0; color: #1c1920; }
 body.dark .tgl { background: #3e3846; }
-body.dark .cp-fields input, body.dark .linkbox input, body.dark .capture input { background: var(--surface-2); color: var(--ink); border-color: #3e3846; }
+body.dark .cp-fields input, body.dark .capture input { background: var(--surface-2); color: var(--ink); border-color: #3e3846; }
 /* cards: white cards turn dark; pastel cards stay pastel with dark words */
 body.dark .card > .frame { box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
 body.dark .card.c-white > .frame, body.dark .card.link > .frame, body.dark .card.doc > .frame, body.dark .card.canvas > .frame, body.dark .card.audio > .frame, body.dark .card.swatch > .frame, body.dark .card.image > .frame { background: #322d38 !important; }
@@ -856,7 +851,7 @@ body.dark .conn button:hover, body.dark .mc-send, body.dark .dv-back, body.dark 
 body.dark .tools button::after { background: #ece8f0; color: #1c1920; }
 body.dark .sb-sizes button.on i { background: #1c1920; }
 body.dark .db-sizes button.on { background: var(--blush); } body.dark .db-sizes button.on i { background: #ece8f0; }
-body.dark .home-back:hover, body.dark .linkbox button { background: #ece8f0; color: #1c1920; }
+body.dark .home-back:hover { background: #ece8f0; color: #1c1920; }
 
 /* ---------- wireframes ---------- */
 .design { position: absolute; right: 16px; top: 16px; width: 230px; z-index: 11; padding: 12px; border-radius: 22px; background: rgba(255, 255, 255, .9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(120, 80, 120, .12); max-height: max(220px, calc(60% - 16px)); overflow: auto; scrollbar-width: thin; }
@@ -1161,7 +1156,7 @@ body.dark .ws-mid:hover { background: #34404f; }
 /* ---------- your colors ---------- */
 html, body { background: var(--board, #fbf8fc); }
 body.dark, body.dark .stage { background: var(--board, #1c1920); }
-body.tint-panels .box, body.tint-panels .tools, body.tint-panels .tray, body.tint-panels .selbar, body.tint-panels .drawbar, body.tint-panels .capture, body.tint-panels .linkbox,
+body.tint-panels .box, body.tint-panels .tools, body.tint-panels .tray, body.tint-panels .selbar, body.tint-panels .drawbar, body.tint-panels .capture,
 body.tint-panels .shapepick, body.tint-panels .tplpick, body.tint-panels .wheel-stamps, body.tint-panels .stamp-pick, body.tint-panels .row-menu, body.tint-panels .m-pill, body.tint-panels .m-chat, body.tint-panels .m-bubble { background: var(--panel) !important; }
 body.tint-panels.panel-dark .box, body.tint-panels.panel-dark .tools, body.tint-panels.panel-dark .tray, body.tint-panels.panel-dark .m-pill { color: #ece8f0; }
 /* a dark board in light mode (or a light one in dark mode): the words that sit right on the board follow it */

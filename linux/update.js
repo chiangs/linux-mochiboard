@@ -4,7 +4,7 @@
 //   anything else (a distro package):  nothing to do here, the package manager updates it
 const fs = require('fs'), path = require('path'), { spawn } = require('child_process');
 const { app } = require('electron');
-const P = require('./paths'), { run } = require('./claude'), { get } = require('./net');
+const P = require('./paths'), { run } = require('./claude'), { get, download: fetchTo } = require('./net');
 
 const REPO = 'chiangs/linux-mochiboard';
 const releaseAPI = process.env.MB_RELEASE_API || `https://api.github.com/repos/${REPO}/releases/latest`;   // the override is only for testing updates
@@ -60,9 +60,9 @@ async function download() {
   if (!r || !r.tag_name) throw new Error("I couldn't reach GitHub just now.");
   const v = pendingVersion(); if (v && !newer(r.tag_name, v) && fs.existsSync(pendingFile())) return v;   // already waiting
   const asset = (r.assets || []).find(a => a.name === assetName()); if (!asset) throw new Error("The new version isn't there yet.");
-  const res = await get(asset.browser_download_url, 1800, { 'User-Agent': 'Mochiboard' }); if (!res.ok) throw new Error("The download didn't finish.");
   fs.rmSync(P.pendingDir, { recursive: true, force: true }); fs.mkdirSync(P.pendingDir, { recursive: true });
-  fs.writeFileSync(pendingFile(), Buffer.from(await res.arrayBuffer()), { mode: 0o755 });
+  try { await fetchTo(asset.browser_download_url, pendingFile(), 1800, { 'User-Agent': 'Mochiboard' }); } catch (e) { throw new Error("The download didn't finish."); }
+  fs.chmodSync(pendingFile(), 0o755);
   fs.writeFileSync(pendingFile() + '.version', r.tag_name.replace(/^v/, ''));
   return r.tag_name.replace(/^v/, '');
 }
@@ -98,11 +98,10 @@ async function now() {
 }
 // on quit: if a newer AppImage is waiting, swap it in once this one has fully closed (it doesn't reopen; the next launch is just newer)
 function onQuit() {
-  if (!appImage()) return;
+  if (swapping || !appImage()) return;   // "Update now" already set up the swap
   const v = pendingVersion(); if (!v || !fs.existsSync(pendingFile())) return;
   if (!newer(v, appVersion())) { fs.rmSync(P.pendingDir, { recursive: true, force: true }); return; }
   swapOnExit(false);
 }
-function onQuitOnce() { if (!swapping) onQuit(); }
 
-module.exports = { check, prepare, now, onQuit: onQuitOnce, appVersion };
+module.exports = { check, prepare, now, onQuit, appVersion };

@@ -3,7 +3,7 @@
 //   the program: whisper-cli (or whisper-cpp / whisper.cpp / main), from the AUR package whisper.cpp or built yourself
 //   the model:   $MB_WHISPER_MODEL, or ~/.local/share/mochiboard/whisper/ggml-<size>.bin, downloaded on first use
 const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto');
-const P = require('./paths'), { run } = require('./claude'), { get } = require('./net');
+const P = require('./paths'), { run } = require('./claude'), { download } = require('./net');
 
 const MODEL = process.env.MB_WHISPER_SIZE || 'base';   // tiny, base, small, medium… base is quick on any CPU and good with clear speech
 const modelFile = () => process.env.MB_WHISPER_MODEL || path.join(P.whisperDir, `ggml-${MODEL}.bin`);
@@ -20,12 +20,8 @@ function whisperPath() {
 let downloading = null;
 function downloadModel() {
   if (downloading) return downloading;
-  downloading = (async () => {
-    fs.mkdirSync(path.dirname(modelFile()), { recursive: true });
-    const part = modelFile() + '.part', r = await get(modelURL(), 1800);
-    if (!r.ok) throw new Error(`couldn't download the speech model (${r.status})`);
-    fs.writeFileSync(part, Buffer.from(await r.arrayBuffer())); fs.renameSync(part, modelFile());
-  })().finally(() => { downloading = null; });
+  fs.mkdirSync(path.dirname(modelFile()), { recursive: true });
+  downloading = download(modelURL(), modelFile(), 1800).finally(() => { downloading = null; });
   return downloading;
 }
 

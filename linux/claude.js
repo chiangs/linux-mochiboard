@@ -1,17 +1,20 @@
 // Mochi thinks with Claude Code on this computer (`claude -p`), which answers with JSON actions for the canvas.
-const fs = require('fs'), os = require('os'), path = require('path'), { spawn, spawnSync } = require('child_process');
+const fs = require('fs'), os = require('os'), { spawn } = require('child_process');
 const P = require('./paths'), prompts = require('./prompts');
 
 const home = os.homedir();
 const isExe = f => { try { fs.accessSync(f, fs.constants.X_OK); return fs.statSync(f).isFile(); } catch (e) { return false; } };
 
-// where Claude Code lives. Looked up again whenever it's missing, so installing it while Mochiboard is open just works (no restart)
-let found = null;
-function claudePath() {
+// where Claude Code lives. Looked up again when it's missing (at most every 20 seconds, since asking the shell is slow),
+// so installing it while Mochiboard is open just works (no restart)
+let found = null, missingSince = 0, looking = null;
+async function claudePath() {
   if (found && isExe(found)) return found;
-  found = findClaude(); return found;
+  if (Date.now() - missingSince < 20000) return null;
+  looking = looking || findClaude().then(p => { found = p; missingSince = p ? 0 : Date.now(); return p; }).finally(() => { looking = null; });
+  return looking;
 }
-function findClaude() {
+async function findClaude() {
   // the usual homes first: the official installer, the older local install, the system, npm / nvm / volta / bun
   const spots = [`${home}/.local/bin/claude`, `${home}/.claude/local/claude`, '/usr/bin/claude', '/usr/local/bin/claude',
     `${home}/.npm-global/bin/claude`, `${home}/.volta/bin/claude`, `${home}/.bun/bin/claude`];
@@ -20,11 +23,9 @@ function findClaude() {
   // anywhere else the person's own shell knows about (bash, zsh or fish, with their config), with a time limit in case the shell is slow
   const shell = process.env.SHELL || '/bin/bash';
   for (const args of [['-l', '-c', 'command -v claude'], ['-l', '-i', '-c', 'command -v claude']]) {
-    try {
-      const r = spawnSync(shell, args, { timeout: 6000, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-      const p = (r.stdout || '').split('\n').map(s => s.trim()).filter(s => s.startsWith('/')).pop();
-      if (p && isExe(p)) return p;
-    } catch (e) {}
+    const r = await run(shell, args, 6);
+    const p = r.out.toString('utf8').split('\n').map(s => s.trim()).filter(s => s.startsWith('/')).pop();
+    if (p && isExe(p)) return p;
   }
   return null;
 }
@@ -72,7 +73,8 @@ function resetUsage() { try { fs.rmSync(P.usageFile, { force: true }); } catch (
 const readPrefs = () => { try { return JSON.parse(fs.readFileSync(P.prefsFile, 'utf8')) || {}; } catch (e) { return {}; } };
 let prefs = readPrefs();
 function setPrefs(p) {
-  prefs = { ...prefs, claudeHooks: !!(p && p.claudeHooks) };
+  const claudeHooks = !!(p && p.claudeHooks); if (claudeHooks === !!prefs.claudeHooks) return true;
+  prefs = { ...prefs, claudeHooks };
   try { fs.writeFileSync(P.prefsFile, JSON.stringify(prefs)); } catch (e) {}
   return true;
 }
@@ -80,7 +82,7 @@ const hookArgs = () => prefs.claudeHooks ? [] : ['--settings', JSON.stringify({ 
 
 // run Claude Code with a prompt and a short list of allowed tools; resolves with its text, rejects with a short reason
 async function runClaude(prompt, tools, timeout, need = 'I need Claude Code to do that.') {
-  const claude = claudePath(); if (!claude) throw new Error(need);
+  const claude = await claudePath(); if (!claude) throw new Error(need);
   const r = await run(claude, ['-p', prompt, '--output-format', 'json', ...hookArgs(), ...(tools.length ? ['--allowedTools', tools.join(',')] : [])], timeout);
   const { text, isError } = claudeResult(r.out);
   // a failed answer (not signed in, no plan…) comes back as an error, not as words for Mochi to read
@@ -112,7 +114,7 @@ const drawFill = a => runClaude(prompts.drawFill(a, jsonSafe(a.images || [])), [
 
 // which helpers Mochi can use: Claude Code itself, and the Mobbin / Higgsfield connections in the person's Claude account
 async function connections() {
-  const claude = claudePath(); if (!claude) return { claude: false, mobbin: false, higgsfield: false };
+  const claude = await claudePath(); if (!claude) return { claude: false, mobbin: false, higgsfield: false };
   const r = await run(claude, ['mcp', 'list'], 60);
   const lines = r.out.toString('utf8').toLowerCase().split('\n');
   const ok = name => lines.some(l => l.includes(name) && l.includes('connected') && !l.includes('needs'));

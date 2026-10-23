@@ -36,4 +36,13 @@ async function fetchImage(s) {
   } catch (e) { return null; }
 }
 
-module.exports = { linkPreview, fetchImage, get, UA };
+// a big file (the AppImage, the speech model) straight to disk, never all of it in memory; it only appears at `file` once it's complete
+async function download(url, file, timeout, headers = {}) {
+  const { Readable } = require('stream'), { pipeline } = require('stream/promises'), fs = require('fs');
+  const r = await get(url, timeout, headers); if (!r.ok || !r.body) throw new Error(`download failed (${r.status})`);
+  const part = file + '.part';
+  try { await pipeline(Readable.fromWeb(r.body), fs.createWriteStream(part)); fs.renameSync(part, file); }
+  catch (e) { fs.rmSync(part, { force: true }); throw e; }
+}
+
+module.exports = { linkPreview, fetchImage, get, download };

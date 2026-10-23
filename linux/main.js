@@ -50,12 +50,8 @@ function createWindow() {
   });
 }
 
-// ---- messages from the page: {id, op, args}; answered with __mbReply(id, ok, value) ----
-const reply = (wc, id, ok, value) => {
-  if (wc.isDestroyed()) return;
-  const json = claude.jsonSafe([value === undefined ? null : value]) || '[null]';
-  wc.executeJavaScript(`__mbReply(${Number(id)}, ${ok ? 'true' : 'false'}, ${json}[0])`).catch(() => {});
-};
+// ---- messages from the page: {id, op, args}; answered with __mbReply(id, ok, value) (preload.js passes it in) ----
+const reply = (wc, id, ok, value) => { if (!wc.isDestroyed()) wc.send('mb-reply', id, ok, value === undefined ? null : value); };
 const OPS = {
   list: () => storage.list(), load: a => storage.load(a.id), save: a => storage.save(a.board), remove: a => storage.remove(a.id),
   folders: () => storage.folders(), saveFolders: a => storage.saveFolders(a.folders),

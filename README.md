@@ -98,7 +98,8 @@ The first memo downloads the speech model (about 140 MB, once) into `~/.local/sh
 - Boards are plain files in `~/.local/share/mochiboard` (same layout as the Mac app, so you can copy boards over from `~/Library/Application Support/Mochiboard/boards`). No account, no cloud.
 - App settings (your name, theme, the tour) live in `~/.config/Mochiboard`.
 - Mochi only thinks when you ask her something. Then the board and your question go to Claude Code on your computer, the same as asking Claude yourself.
-- Switch Mochi's thinking off in Settings and the whole canvas still works, with no AI and no internet.
+- Switch Mochi's thinking off in Settings and the whole canvas still works, with no AI and no internet. (Spell check is Chromium's: it fetches its dictionary from Google once, then works offline.)
+- Mochiboard can use your camera and microphone without asking each time (Linux has no per-app prompt like macOS). It only turns them on when you press Start recording on a voice memo or video card.
 - Chats are kept the way you choose: on each board, until you quit, or not at all.
 
 ## Shortcuts
@@ -123,7 +124,25 @@ The first memo downloads the speech model (about 140 MB, once) into `~/.local/sh
 
 ## The window
 
-Like on the Mac, Mochiboard has no title bar: the board fills the window. The three dots at the top left close, minimize and maximize it, and the strip next to them drags it. Resize from any edge. On tiling compositors (Hyprland, Sway, niri) the compositor places it like any other window.
+Like on the Mac, Mochiboard has no title bar: the board fills the window. The three dots at the top left close, minimize and maximize it, and the strip next to them drags it. Resize from any edge. On tiling compositors (Hyprland, Sway, niri) the compositor places it like any other window, and you can hide the dots in Settings → General → Window buttons.
+
+## Differences from the Mac app
+
+The canvas and Mochi are the same; these are the places Linux works differently:
+
+| | Mac app | Linux |
+|---|---|---|
+| **The app around the canvas** | Swift + Safari's engine (WebKit) | Electron (Chromium). Cards, blur and fonts can render a hair differently. |
+| **Shortcuts** | ⌘ | Ctrl, plus Ctrl+M (minimize), Ctrl+Q (quit), F11 (full screen), F12 (developer tools). There's no "Hide" (⌘H). |
+| **Your boards** | `~/Library/Application Support/Mochiboard` | `~/.local/share/mochiboard` (same files) |
+| **Voice memos written out** | Apple's speech recognition, built in | whisper.cpp, optional; downloads a speech model on first use |
+| **Camera and microphone** | macOS asks once | No per-app prompt; used only while you record |
+| **Card / board export as PDF** | Real PDF with selectable text | A sharp picture inside a PDF page (2–4× screen resolution). PNG export and doc PDFs are the same as on the Mac (docs keep real, selectable text). |
+| **Suggested fonts** | Includes Apple fonts (Helvetica Neue, Avenir Next, Futura…) | Free Google Fonts look-alikes (Inter, Nunito Sans, Jost…). Boards from a Mac that use Apple fonts show a fallback font unless you have them installed. |
+| **Claude Code hooks** | Mochi's requests run your hooks | Off for Mochi's requests by default, so hooks for your own sessions (like the desktop Mochi) stay quiet. Settings → Helpers turns them back on. |
+| **Finding Claude Code** | Homebrew and the usual install folders | `~/.local/bin`, `/usr/bin`, npm/nvm/volta/bun, then your login shell (bash, zsh or fish) |
+| **Updates** | Downloaded .zip, or git + rebuild | AppImage swaps itself in, or git + reinstall (`./install.sh --update`) |
+| **Window** | macOS title bar buttons | Drawn by the page (can be hidden) |
 
 ## Troubleshooting
 
@@ -137,7 +156,7 @@ Like on the Mac, Mochiboard has no title bar: the board fills the window. The th
 
 Two layers:
 
-- `web/`: the canvas, plain HTML, CSS and JavaScript with no build step. It's the same canvas as the Mac app.
+- `web/`: the canvas, plain HTML, CSS and JavaScript with no build step. It started as the Mac app's canvas, with small Linux changes (wording, Ctrl shortcuts, window buttons, fonts).
 - `linux/`: a small Electron host that does what a web page can't. It saves boards, fetches link previews, exports images and PDFs, writes out voice memos, and runs `claude -p` so Mochi can think.
 
 The two talk through one channel (`window.webkit.messageHandlers.mb`, the same as the Mac app), so the canvas doesn't know or care which computer it's on. See [CONTRIBUTING.md](CONTRIBUTING.md) to change or extend it.

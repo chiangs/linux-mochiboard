@@ -1,11 +1,12 @@
 // The canvas talks to its host through window.webkit.messageHandlers.mb, like on the Mac (WKWebView).
-// Here that's a small stand-in that hands each {id, op, args} to the main process; it answers with __mbReply(id, ok, value).
+// Here that's a small stand-in that hands each {id, op, args} to the main process; the answer arrives as __mbReply(id, ok, value).
 const { contextBridge, ipcRenderer } = require('electron');
 
 // voice memos arrive as webm/opus; whisper wants 16 kHz mono WAV, and the page can decode audio itself, so it's converted here
 async function toWav16k(dataURL) {
   const bytes = Uint8Array.from(atob(dataURL.slice(dataURL.indexOf(',') + 1)), c => c.charCodeAt(0));
-  const decoded = await new AudioContext().decodeAudioData(bytes.buffer);
+  // decoded with an offline context: a live AudioContext holds the sound device, and Chromium only allows a few at a time
+  const decoded = await new OfflineAudioContext(1, 1, 44100).decodeAudioData(bytes.buffer);
   const rate = 16000, len = Math.max(1, Math.ceil(decoded.duration * rate));
   const off = new OfflineAudioContext(1, len, rate), src = off.createBufferSource();
   src.buffer = decoded; src.connect(off.destination); src.start();
@@ -31,6 +32,9 @@ contextBridge.exposeInMainWorld('webkit', {
     },
   },
 });
+// answers come back over IPC (structured data, nothing turned into script) and are handed to the page's __mbReply
+ipcRenderer.on('mb-reply', (e, id, ok, value) => contextBridge.executeInMainWorld({ func: (i, o, v) => window.__mbReply && window.__mbReply(i, o, v), args: [id, ok, value] }));
+
 // the window buttons the page draws (the window has no title bar of its own)
 contextBridge.exposeInMainWorld('mbWindow', {
   minimize: () => ipcRenderer.send('win', 'minimize'),

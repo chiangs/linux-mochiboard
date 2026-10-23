@@ -7,12 +7,18 @@ const readJSON = (f, fallback) => { try { return JSON.parse(fs.readFileSync(f, '
 // write to a temporary file first, then swap it in, so a crash mid-save never leaves half a board
 function writeAtomic(f, text) { const tmp = f + '.tmp'; fs.writeFileSync(tmp, text); fs.renameSync(tmp, f); }
 
+// the board list needs only a few fields from each file, and boards with pictures can be many MB,
+// so each board's summary is kept until its file changes (same size and time = same board)
+const summaries = new Map();
 function list() {
   let files = []; try { files = fs.readdirSync(P.boardsDir).filter(f => f.endsWith('.json')); } catch (e) {}
+  for (const f of summaries.keys()) if (!files.includes(f)) summaries.delete(f);
   return files.map(f => {
-    const full = path.join(P.boardsDir, f), j = readJSON(full, null); if (!j || typeof j !== 'object') return null;
-    let mod = 0; try { mod = fs.statSync(full).mtimeMs / 1000; } catch (e) {}
-    return { id: j.id ?? '', name: j.name ?? 'Untitled', color: j.color ?? 'pink', folder: j.folder ?? null, parent: j.parent ?? null, updated: mod };
+    const full = path.join(P.boardsDir, f); let st; try { st = fs.statSync(full); } catch (e) { return null; }
+    const known = summaries.get(f); if (known && known.mtimeMs === st.mtimeMs && known.size === st.size) return known.row;
+    const j = readJSON(full, null); if (!j || typeof j !== 'object') return null;
+    const row = { id: j.id ?? '', name: j.name ?? 'Untitled', color: j.color ?? 'pink', folder: j.folder ?? null, parent: j.parent ?? null, updated: st.mtimeMs / 1000 };
+    summaries.set(f, { mtimeMs: st.mtimeMs, size: st.size, row }); return row;
   }).filter(Boolean).sort((a, b) => b.updated - a.updated);
 }
 const load = id => readJSON(path.join(P.boardsDir, safe(id) + '.json'), null);

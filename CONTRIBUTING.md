@@ -25,7 +25,7 @@ install.sh  uninstall.sh  make-release.sh  packaging/
 
 ## How the canvas talks to the host
 
-`web/bridge.js` sends `{id, op, args}` through `window.webkit.messageHandlers.mb.postMessage`. In the app, `linux/preload.js` passes it to `linux/main.js`, which looks the op up in `OPS` and answers by calling `__mbReply(id, ok, value)` in the page. In a plain browser, bridge.js uses localStorage and a pretend Mochi instead.
+`web/bridge.js` sends `{id, op, args}` through `window.webkit.messageHandlers.mb.postMessage`. In the app, `linux/preload.js` passes it to `linux/main.js`, which looks the op up in `OPS`. The answer goes back over IPC (`mb-reply`), and preload.js hands it to the page's `__mbReply(id, ok, value)`. Nothing is turned into script, so big boards and pictures pass through quickly. In a plain browser, bridge.js uses localStorage and a pretend Mochi instead.
 
 **To add a new ability that needs the computer** (a file, a program, the network):
 1. Add the op to `OPS` in `linux/main.js` (put real work in a module next to it).

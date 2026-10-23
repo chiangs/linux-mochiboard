@@ -114,7 +114,7 @@
     el.onblur = async () => { el.contentEditable = 'false'; const v = el.textContent.trim();
       // the list may have reloaded while you typed, so rename the current copy (found by id), not the one we started with
       const liveObj = [...projects, ...folders].find(x => x.id === obj.id) || obj; if (v) { liveObj.name = v; obj.name = v; }
-      await (after ? after(v) : saveLib()); renamingNow = false; refreshBoards(); };
+      await (after ? after(v) : saveLib()); refreshBoards(); };
   }
   async function newBoardIn(folderId) { const b = newBoard(); b.folder = folderId; await MB.save(b); closeHome(); await openBoard(b.id); $('boardName').focus(); $('boardName').select(); }
 
@@ -256,9 +256,8 @@
   }
   const uniqueName = (arr, base) => { let n = base, k = 2; while (byName(arr, n)) n = base + ' ' + k++; return n; };
   function renameNewest(sel, obj) { const el = [...document.querySelectorAll(`#boards ${sel}`)].find(n => n.querySelector('.fname').textContent === obj.name); if (el) inlineRename(el.querySelector('.fname'), obj); }
-  let renamingNow = false;
   async function refreshBoards() {
-    if (document.querySelector('#boards [contenteditable="true"], .home [contenteditable="true"]')) { renamingNow = true; return; }   // don't redraw under someone typing a name
+    if (document.querySelector('#boards [contenteditable="true"], .home [contenteditable="true"]')) return;   // don't redraw under someone typing a name
     await loadLib();
     const el = $('boards'); el.innerHTML = '';
     // inside a project (on Home or on one of its boards) the left box shows just that project; in All projects it shows everything
@@ -339,7 +338,6 @@
     $('homeTitle').textContent = f ? f.name : p ? p.name : 'Your projects';
     $('homeSub').textContent = f ? [subFolders(f.id).length ? plural(subFolders(f.id).length, 'folder') : '', plural(boardsIn(f.id).length, 'board')].filter(Boolean).join(' · ') : p ? plural(foldersIn(p.id).length, 'folder') : 'Every project, with its folders and boards inside.';
     const add = (label, run) => { const a = document.createElement('button'); a.className = 'tile add'; a.innerHTML = `<span>+</span>${label}`; a.onclick = run; grid.appendChild(a); };
-    const del = async (arr, obj, fix) => { fix(); if (arr === 'p') projects = projects.filter(x => x !== obj); else folders = folders.filter(x => x !== obj); await saveLib(); refreshBoards(); };
     const projectTile = pp => {
       const fs = foldersIn(pp.id), nb = fs.reduce((n, x) => n + boardsUnder(x), 0);
       const t = tile('project', pp, `${plural(fs.length, 'folder')} · ${plural(nb, 'board')}`, () => openHome('project:' + pp.id), [['ren', 'Rename', '✎']]);
@@ -417,7 +415,6 @@
   function resetHistory() { past = board ? [stateOf()] : []; future = []; }
   function travel(dir) {
     clearTimeout(snapT); remember();                          // catch the very latest change first
-    const from = dir < 0 ? past : future, to = dir < 0 ? future : past;
     if (dir < 0 ? past.length < 2 : !future.length) return say(dir < 0 ? 'Nothing left to undo' : 'Nothing to redo', 1800);
     if (dir < 0) future.push(past.pop()); else past.push(future.pop());
     const st = JSON.parse(past[past.length - 1]); restoring = true;
@@ -527,7 +524,7 @@
       case 'ink': return `<svg viewBox="0 0 ${c.ow} ${c.oh}" preserveAspectRatio="none">${inkPath(c.pts, c.pen, c.size, c.ink, true)}</svg>`;
       case 'frame': return `<div class="fr-body"></div><div class="fr-name">${esc(c.name || 'Screen')}</div>`;
       case 'box': return `<div class="bx"></div>${c.img && !c.src ? `<div class="bx-ph"><span class="mi">image</span><span class="bx-l">${esc(c.img)}</span></div>` : ''}`;
-      case 'font': { const f = esc(c.font || 'DM Sans'); useFont(c.font); return `<div class="fs-aa" style="font-family:'${f}', system-ui">Aa</div><div class="fs-meta"><b>${f}</b><span class="fs-src">${onMac(c.font) ? 'On your computer' : 'Google Fonts'}</span></div><div class="fs-sample text" style="font-family:'${f}', system-ui">${esc(c.text || 'The quick brown fox jumps over the lazy dog')}</div>`; }
+      case 'font': { const f = esc(c.font || 'DM Sans'); useFont(c.font); return `<div class="fs-aa" style="font-family:'${f}', system-ui">Aa</div><div class="fs-meta"><b>${f}</b><span class="fs-src">${isLocalFont(c.font) ? 'On your computer' : 'Google Fonts'}</span></div><div class="fs-sample text" style="font-family:'${f}', system-ui">${esc(c.text || 'The quick brown fox jumps over the lazy dog')}</div>`; }
       case 'icon': return `<span class="mi">${esc(c.name || 'star')}</span>`;
       case 'text': return `<div class="text tx">${esc(c.text || '')}</div>`;
       case 'coll': return `<div class="coll-head"><span class="text">${esc(c.text)}</span></div><div class="coll-frame"></div>${(c.kids || []).length ? '' : '<div class="coll-empty">Drop cards here</div>'}`;
@@ -607,7 +604,7 @@
   function layoutColl(s) {
     s.kids = (s.kids || []).filter(id => byId(id) && id !== s.id); s.cols = Math.max(1, s.cols || 1);
     s.w = s.cols * CW + (s.cols - 1) * CGAP + CPAD * 2;
-    const top = s.head === false ? 0 : CHEAD, colH = Array(s.cols).fill(0), slot = [];
+    const top = s.head === false ? 0 : CHEAD, colH = Array(s.cols).fill(0);
     s.kids.forEach(id => {
       const c = byId(id), el = cardsEl.querySelector(`[data-id="${id}"]`); if (!el) return;
       const h = naturalHeight(c, el); if (c.type === 'image') { c.h = h; }
@@ -925,7 +922,7 @@
   // ---------- pointer: drag cards, resize, connect, marquee, pan ----------
   let drag = null;
   stage.addEventListener('pointerdown', e => {
-    if (e.target.closest('.tools, .tray, .mochi, .top, .capture, .side, .keys, .cpop, .home, .linkbox, .selbar, .dock, .docview, .shapepick, .tplpick')) return;
+    if (e.target.closest('.tools, .tray, .mochi, .top, .capture, .side, .keys, .cpop, .home, .selbar, .dock, .docview, .shapepick, .tplpick')) return;
     const el = e.target.closest('.card'), w = toWorld(e.clientX, e.clientY);
     if (e.button === 2) return;   // right-click opens the menu, it doesn't drag
     if (board) { clearTimeout(snapT); remember(); }   // lock in the last change before a new one starts, so undo steps stay separate
@@ -1065,7 +1062,7 @@
   });
   stage.addEventListener('dblclick', e => {
     if (document.elementFromPoint(e.clientX, e.clientY)?.closest('.card, .selbar')) return;
-    if (e.target.closest('.card, .tools, .tray, .mochi, .top, .capture, .side, .keys, .cpop, .home, .linkbox, .selbar, .docview, .hub, .sheet')) return;
+    if (e.target.closest('.card, .tools, .tray, .mochi, .top, .capture, .side, .keys, .cpop, .home, .selbar, .docview, .hub, .sheet')) return;
     const w = toWorld(e.clientX, e.clientY), c = card('note', { color: newNoteColor() }); c.x = snapTo(w.x - c.w / 2); c.y = snapTo(w.y - c.h / 2); addCard(c); selectOnly([c.id]); startEdit(c.id);
   });
   // card buttons: pull colours, checklist items
@@ -1220,11 +1217,6 @@
   });
   addEventListener('keyup', e => { if (e.key === ' ') { space = false; stage.classList.remove('space'); } });
   // links get a little paste box under the toolbar (the app can't show the browser's prompt)
-  function addLinkPrompt() { $('linkbox').classList.add('on'); $('linkInput').value = ''; setTimeout(() => $('linkInput').focus(), 30); }
-  const closeLink = () => $('linkbox').classList.remove('on');
-  $('linkbox').onsubmit = e => { e.preventDefault(); const u = $('linkInput').value.trim(); closeLink(); if (u) linkCard(/^https?:/i.test(u) ? u : 'https://' + u, centerWorld()); };
-  $('linkInput').onkeydown = e => { if (e.key === 'Escape') { closeLink(); e.stopPropagation(); } };
-  addEventListener('pointerdown', e => { if ($('linkbox').classList.contains('on') && !e.target.closest('.linkbox, [data-add="link"]')) closeLink(); }, true);
 
   // ---------- toolbar ----------
   $('tools').onclick = e => { const b = e.target.closest('[data-add]'); if (!b) return; const t = b.dataset.add;
@@ -1518,7 +1510,7 @@
     $('mochi').classList.add('thinking'); goo.think(true); favGoo?.think(true); typing(true);
     try { const raw = await MB.ask(q, snapshot(), confirmed, { mobbin: settings.mobbin, higgs: settings.higgs }); await applyMochi(parse(raw), q); }
     catch (err) { if (/Claude Code/.test(err.message)) { haveClaude = false; return offlineMochi(q, "I need Claude Code on this computer to think. It's a one-time setup with your Claude account."); }
-      if (SIGNIN.test(err.message)) { offlineMochi.signin = true; return offlineMochi(q, "Claude Code is here, but it isn't signed in yet. Open Terminal, type claude, and sign in with a Claude Pro or Max account."); }
+      if (SIGNIN.test(err.message)) { offlineMochi.signin = true; return offlineMochi(q, "Claude Code is here, but it isn't signed in yet. Open a terminal, type claude, and sign in with a Claude Pro or Max account."); }
       say("Hmm, I couldn't reach Claude: " + err.message); }
     finally { $('mochi').classList.remove('thinking'); goo.think(false); favGoo?.think(false); typing(false); }
   }
@@ -1660,7 +1652,7 @@
     if (type === 'link') c.h = 52;
     if (type === 'shape' && more.shape === 'line') { c.w = 200; c.h = 24; }
     if (window.__phone?.on) {   // a finger has no ghost to aim with: center it on the tap, and keep it on screen
-      const r = stage.getBoundingClientRect(), z = view.z, mx = 12 / z, wl = (r.left + 12 - view.x) / z, wr = (r.right - 12 - view.x) / z, wt = (r.top + 70 - view.y) / z, wb = (r.bottom - 100 - view.y) / z;
+      const r = stage.getBoundingClientRect(), z = view.z, wl = (r.left + 12 - view.x) / z, wr = (r.right - 12 - view.x) / z, wt = (r.top + 70 - view.y) / z, wb = (r.bottom - 100 - view.y) / z;
       c.x = snapTo(clamp(w.x - c.w / 2, wl, Math.max(wl, wr - c.w))); c.y = snapTo(clamp(w.y - c.h / 2, wt, Math.max(wt, wb - c.h))); }
     if (type === 'swatch') { c.label = colorName(c.hex); c.autoName = true; }
     if (type === 'canvas') { const child = newBoard('Untitled canvas'); child.parent = board.id; child.folder = board.folder || null; c.board = child.id; MB.save(child).then(refreshBoards); }
@@ -2004,7 +1996,7 @@
   // ---------- wireframes: screens, boxes and text, a design panel, and snapping ----------
   const WF = ['frame', 'box', 'text', 'icon'];
   const DEVICES = { iPhone: [393, 852, 44], Android: [412, 915, 28], iPad: [834, 1194, 20], Desktop: [1440, 1024, 10], Watch: [205, 251, 40] };
-  let FONTS = ['DM Sans', 'Inter', 'Helvetica Neue', 'Georgia']; MB.fonts().then(f => { if (f?.length) FONTS = f; }).catch(() => {});
+  let FONTS = ['DM Sans', 'Caveat']; MB.fonts().then(f => { if (f?.length) FONTS = f; }).catch(() => {});
   function styleWF(c, el) {
     el.classList.add('wf'); c.r = 0; el.style.setProperty('--rot', (c.rot || 0) + 'deg'); el.classList.toggle('grouped', !!c.group);
     if (!el.querySelector('.rot-h')) el.insertAdjacentHTML('beforeend', '<i class="rot-h" title="Drag to rotate"></i>');
@@ -2033,15 +2025,15 @@
       mx.forEach(a => ox.forEach(b => { const d = b - a; if (Math.abs(d) < T && (!bx || Math.abs(d) < Math.abs(bx.d))) bx = { d, at: b, o }; }));
       my.forEach(a => oy.forEach(b => { const d = b - a; if (Math.abs(d) < T && (!by || Math.abs(d) < Math.abs(by.d))) by = { d, at: b, o }; })); });
     let g = '';
-    if (bx) { dx += bx.d; const top = Math.min(y0 + dy - y0 + y0, bx.o.y), bot = Math.max(y1, bx.o.y + bx.o.h); g += `<line x1="${bx.at + O}" y1="${Math.min(y0, bx.o.y) + O - 10}" x2="${bx.at + O}" y2="${Math.max(y1, bx.o.y + bx.o.h) + O + 10}"/>`; }
+    if (bx) { dx += bx.d; g += `<line x1="${bx.at + O}" y1="${Math.min(y0, bx.o.y) + O - 10}" x2="${bx.at + O}" y2="${Math.max(y1, bx.o.y + bx.o.h) + O + 10}"/>`; }
     if (by) { dy += by.d; g += `<line x1="${Math.min(x0, by.o.x) + O - 10}" y1="${by.at + O}" x2="${Math.max(x1, by.o.x + by.o.w) + O + 10}" y2="${by.at + O}"/>`; }
     $('guides').innerHTML = g; return { dx, dy };
   }
   // fonts: use what's on this computer; anything else is fetched from Google Fonts so the real type shows
   const fontsLoaded = new Set();
-  const onMac = f => FONTS.some(x => x.toLowerCase() === String(f || '').toLowerCase()) || ['DM Sans', 'Caveat'].includes(f);
+  const isLocalFont = f => FONTS.some(x => x.toLowerCase() === String(f || '').toLowerCase()) || ['DM Sans', 'Caveat'].includes(f);
   function useFont(f) {
-    if (!f || onMac(f) || fontsLoaded.has(f)) return; fontsLoaded.add(f);
+    if (!f || isLocalFont(f) || fontsLoaded.has(f)) return; fontsLoaded.add(f);
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, '+')}:wght@400;700&display=swap`; document.head.appendChild(l);
   }
   // groups: ready-made pieces arrive grouped; Ctrl+G groups a selection, Ctrl+Shift+G ungroups
@@ -2182,7 +2174,6 @@
     startPlacing('icon', { name: b.dataset.icon }); };
 
   // the design panel: tools when nothing's picked, the selection's settings when something is
-  let wfTool = null;
   function pickWF(t) {
     document.querySelectorAll('[data-wf]').forEach(b => b.classList.toggle('on', b.dataset.wf === t));
     $('dzPresets').classList.toggle('on', t === 'frame');
@@ -2520,7 +2511,9 @@
   const BLOCKS = [['title', 'Title', 36], ['heading', 'Heading', 26], ['sub', 'Subheading', 20], ['body', 'Body', 16], ['lead', 'Lead', 19], ['caption', 'Caption', 13], ['quote', 'Quote', 18], ['code', 'Code', 14]];
   const TEXT_COLORS = ['#2b2630', '#6b6370', '#a39aa8', '#e2649a', '#e8590c', '#c99a00', '#1f9d63', '#1f7ae0', '#6b4fe0', '#c0392b'];
   const HIGHLIGHTS = ['#fff1a8', '#ffd3e5', '#cdf2df', '#d4e8ff', '#e5dbff', '#ffe0c9', '#e9e4ec'];
-  const SUGGESTED_FONTS = ['DM Sans', 'Inter', 'Helvetica Neue', 'Avenir Next', 'Futura', 'Gill Sans', 'Georgia', 'Baskerville', 'Palatino', 'Times New Roman', 'Didot', 'Playfair Display', 'Lora', 'Fraunces', 'Merriweather', 'Space Grotesk', 'IBM Plex Mono', 'Menlo', 'Caveat'];
+  // all on Google Fonts, so they show up on any computer (the Mac list's Helvetica Neue, Avenir Next, Futura, Gill Sans, Baskerville,
+  // Palatino, Didot and Menlo are Apple's own; these are their closest free cousins)
+  const SUGGESTED_FONTS = ['DM Sans', 'Inter', 'Nunito Sans', 'Jost', 'Lato', 'Gelasio', 'Libre Baskerville', 'EB Garamond', 'Tinos', 'Bodoni Moda', 'Playfair Display', 'Lora', 'Fraunces', 'Merriweather', 'Space Grotesk', 'IBM Plex Mono', 'JetBrains Mono', 'Caveat'];
   const DI = d => `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const DICON = {
     left: DI('<path d="M3.5 5h13M3.5 8.5h9M3.5 12h13M3.5 15.5h9"/>'), center: DI('<path d="M3.5 5h13M5.5 8.5h9M3.5 12h13M5.5 15.5h9"/>'),
@@ -2630,7 +2623,7 @@
       return r.innerHTML; };
     const body = glue(ed ? ed.getHTML() : docHTML(docCard)), first = (ed ? ed.state.doc.firstChild?.textContent : '') || '';
     const title = (docCard?.text || '').trim() && first.trim().toLowerCase() !== (docCard.text || '').trim().toLowerCase() ? docCard.text.trim() : '';   // no double title when the doc already starts with it
-    const web = [...new Set(fontsIn(ed ? ed.getJSON() : docCard.doc || {}))].filter(f => !onMac(f));
+    const web = [...new Set(fontsIn(ed ? ed.getJSON() : docCard.doc || {}))].filter(f => !isLocalFont(f));
     const size = paper === 'a4' ? '210mm 297mm' : '8.5in 11in';
     return `<!doctype html><html><head><meta charset="utf-8"><title>${escH(title || 'Document')}</title>
 <link rel="stylesheet" href="__WEB__/fonts.css">${web.map(f => `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, '+')}:ital,wght@0,400;0,700;1,400&display=swap">`).join('')}
@@ -2739,7 +2732,7 @@ ${proseCSS()}
   }
   function run(cmd) {
     if (!ed) return; const c = ed.chain().focus();
-    const step = d => { const s = docSize(), i = SIZES.findIndex(x => x >= s); const n = d > 0 ? (SIZES.find(x => x > s) || s + 8) : ([...SIZES].reverse().find(x => x < s) || Math.max(6, s - 2)); return n + 'px'; };
+    const step = d => { const s = docSize(); const n = d > 0 ? (SIZES.find(x => x > s) || s + 8) : ([...SIZES].reverse().find(x => x < s) || Math.max(6, s - 2)); return n + 'px'; };
     ({ undo: () => c.undo(), redo: () => c.redo(), bold: () => c.toggleBold(), italic: () => c.toggleItalic(), underline: () => c.toggleUnderline(), strike: () => c.toggleStrike(),
       bullet: () => c.toggleBulletList(), ordered: () => c.toggleOrderedList(), task: () => c.toggleTaskList(),
       smaller: () => c.setFontSize(step(-1)), bigger: () => c.setFontSize(step(1)), image: () => (imgPick.click(), c),
@@ -2773,7 +2766,7 @@ ${proseCSS()}
     } else if (kind === 'font') {
       const cur = fontName(ed.getAttributes('textStyle').fontFamily) || DOC_FONT;
       const onBoard = boardFonts();
-      const row = f => `<button type="button" class="dp-row dp-font ${f === cur ? 'on' : ''}" data-font="${escH(f)}" style="font-family:'${escH(f)}', ${DOC_FONT}, system-ui">${escH(f)}${onMac(f) ? '' : '<small>Google Fonts</small>'}</button>`;
+      const row = f => `<button type="button" class="dp-row dp-font ${f === cur ? 'on' : ''}" data-font="${escH(f)}" style="font-family:'${escH(f)}', ${DOC_FONT}, system-ui">${escH(f)}${isLocalFont(f) ? '' : '<small>Google Fonts</small>'}</button>`;
       p.innerHTML = `<input class="dp-search" id="dpFontQ" placeholder="Search fonts…" autocomplete="off" spellcheck="false">
         <div class="dp-scroll" id="dpFontList">${onBoard.length ? `<div class="dp-h">Used on this board</div>${onBoard.map(row).join('')}` : ''}<div class="dp-h">Suggested</div>${SUGGESTED_FONTS.filter(f => !onBoard.includes(f)).map(row).join('')}
         <div class="dp-h">On your computer</div>${FONTS.filter(f => !SUGGESTED_FONTS.includes(f) && !onBoard.includes(f)).slice(0, 400).map(row).join('')}</div>`;
@@ -2879,7 +2872,7 @@ ${proseCSS()}
     } catch (err) {
       const m = err.message || '';
       if (/Claude Code/.test(m)) say("I need Claude Code to rewrite things. It's a one-time setup with your Claude account.", 0, [{ label: 'Show me how to connect', run: () => MB.openURL(GUIDE) }]);
-      else if (SIGNIN.test(m)) say("Claude Code is here, but it isn't signed in yet. Open Terminal, type claude, and sign in.", 0, [{ label: 'Show me how', run: () => MB.openURL(GUIDE) }]);
+      else if (SIGNIN.test(m)) say("Claude Code is here, but it isn't signed in yet. Open a terminal, type claude, and sign in.", 0, [{ label: 'Show me how', run: () => MB.openURL(GUIDE) }]);
       else say(MB.native ? "Hmm, I couldn't rewrite that: " + m : 'Mochi rewrites text with Claude in the desktop app ✦', 8000);
     } finally { $('docview').classList.remove('mochi-busy'); goo.think(false); $('dvSaved').textContent = ''; }
   }
@@ -2972,7 +2965,7 @@ ${proseCSS()}
     p.dataset.for = list.map(c => c.id).join();
     const cur = list.every(c => (c.font || '') === (list[0].font || '')) ? (list[0].font || '') : null;
     const onBoard = boardFonts();
-    const row = f => `<button type="button" class="dp-row dp-font ${f === cur ? 'on' : ''}" data-bfont="${escH(f)}" style="font-family:'${escH(f)}', ${DOC_FONT}, system-ui">${escH(f)}${onMac(f) ? '' : '<small>Google Fonts</small>'}</button>`;
+    const row = f => `<button type="button" class="dp-row dp-font ${f === cur ? 'on' : ''}" data-bfont="${escH(f)}" style="font-family:'${escH(f)}', ${DOC_FONT}, system-ui">${escH(f)}${isLocalFont(f) ? '' : '<small>Google Fonts</small>'}</button>`;
     p.innerHTML = `<input class="dp-search" placeholder="Search fonts…" autocomplete="off" spellcheck="false">
       <div class="dp-scroll"><button type="button" class="dp-row dp-font ${cur === '' ? 'on' : ''}" data-bfont="">Default font<small>Mochiboard’s own</small></button>
       ${onBoard.length ? `<div class="dp-h">Used on this board</div>${onBoard.map(row).join('')}` : ''}<div class="dp-h">Suggested</div>${SUGGESTED_FONTS.filter(f => !onBoard.includes(f)).map(row).join('')}
@@ -3234,7 +3227,7 @@ ${proseCSS()}
     $('setUpdate').classList.toggle('ready', n > 0);
     $('suGo').hidden = !(n > 0);
     $('suTitle').textContent = n > 0 ? `A new Mochiboard is ready ✦` : 'Updates';
-    $('suSub').textContent = !u.repo && !u.release ? 'To get updates, update once from Terminal with ./install.sh --update. After that it works from here.'
+    $('suSub').textContent = !u.repo && !u.release ? 'To get updates, run ./install.sh --update once in a terminal from your Mochiboard folder. After that it works from here.'
       : u.offline ? 'I couldn’t reach GitHub just now. I’ll try again later.'
       : u.release ? (n > 0 ? `Version ${String(u.latest || '').replace(/^v/, '')} is ready (you have ${u.since}). Your boards and settings stay just as they are.` : `You’re up to date (version ${u.since}).`)
       : n > 0 ? `${n} update${n > 1 ? 's' : ''} since your version${u.since ? ' from ' + u.since : ''}. Your boards and settings stay just as they are.`
@@ -3429,7 +3422,7 @@ ${proseCSS()}
       add: { title: 'Add', tabs: [['Basics', () => $('tools')], ['Wireframe', () => $('design')], ['Colors', () => box('colors')]] },
       tray: { title: 'Unsorted', tabs: [['Ideas', () => $('tray')]] },
     };
-    let open = null, tab = 0;
+    let open = null;
     // move a real panel into the sheet (remembering where it lived) or put it back
     const adopt = el => { if (!home.has(el)) home.set(el, [el.parentNode, el.nextSibling]); };
     const restoreAll = () => home.forEach(([p, n], el) => { p.insertBefore(el, n && n.parentNode === p ? n : null); el.classList.remove('in-sheet'); });
@@ -3458,7 +3451,7 @@ ${proseCSS()}
       grab.addEventListener('pointermove', e => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); panel.style.transform = `translateY(${dy}px)`; });
       grab.addEventListener('pointerup', () => { if (y0 === null) return; y0 = null; panel.style.transition = ''; if (dy > 90) hide(); else panel.style.transform = ''; }); }
     // picking something to place closes the sheet, so the next tap lands on the board
-    const ready = () => placing || drawOn || ['shapePick', 'tplPick', 'stampWheel', 'linkbox'].some(id => $(id).classList.contains('on'));
+    const ready = () => placing || drawOn || ['shapePick', 'tplPick', 'stampWheel'].some(id => $(id).classList.contains('on'));
     $('shBody').addEventListener('click', () => { setTimeout(() => ready() && hide(), 0); setTimeout(() => open && ready() && hide(), 700); });   // the second look catches tools that get ready a moment later (a voice memo asks for the mic first)
     // layers and boards: once you pick one, get out of the way so you can see it
     box('layers').addEventListener('click', e => { if (phone.on && e.target.closest('.ly') && !e.target.closest('.ly-tw, .ly-b')) setTimeout(hide, 60); });
