@@ -79,6 +79,8 @@ Mochi thinks with [Claude Code](https://docs.claude.com/en/docs/claude-code) on 
 
 Mochiboard looks for `claude` in `~/.local/bin`, `~/.claude/local`, `/usr/bin`, `/usr/local/bin`, npm / nvm / volta / bun folders, and finally asks your login shell (bash, zsh or fish).
 
+**Hooks.** Mochi's requests run with your Claude Code hooks switched off, so hooks meant for your own sessions (for example the [desktop Mochi](https://github.com/chiangs/linux-mochi)'s thinking meter and reply bubbles) don't fire while she thinks in Mochiboard. Skills, plugins, connectors and your login work as usual. To let your hooks see her requests, turn on **Settings → Helpers → Let my Claude Code hooks see Mochi's requests**.
+
 **Mobbin and Higgsfield** are connectors in your Claude account: add them at [claude.ai/settings/connectors](https://claude.ai/settings/connectors). Mochiboard sees them through `claude mcp list`.
 
 ## Voice memos written out (optional)

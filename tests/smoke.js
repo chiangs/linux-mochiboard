@@ -25,6 +25,7 @@ echo " [BLANK_AUDIO] hello from whisper"
   // save dialogs answer themselves: everything lands in out/
   await app.evaluate(({ dialog }, out) => { dialog.showSaveDialog = async (w, o) => ({ canceled: false, filePath: out + '/' + o.defaultPath.split('/').pop() }); }, out);
   const page = await app.firstWindow(), errors = [];
+  await page.exposeFunction('__readArgs', () => fs.readFileSync(path.join(data, 'args.txt'), 'utf8'));
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => m.type() === 'error' && errors.push(m.text()));
   await page.waitForFunction(() => window.MB && document.querySelector('#side'));
@@ -61,18 +62,28 @@ echo " [BLANK_AUDIO] hello from whisper"
     return res;
   });
   r.prompt = fs.readFileSync(path.join(data, 'prompt.txt'), 'utf8'); r.args = fs.readFileSync(path.join(data, 'args.txt'), 'utf8').slice(-120); r.wav = fs.readFileSync(path.join(data, 'wav-magic.txt'), 'utf8');
+  // Claude Code hooks: off for Mochi's calls unless Settings → Helpers says otherwise
+  Object.assign(r, await page.evaluate(async () => {
+    const argsAfter = async fn => { await fn(); return window.__readArgs(); }, res = {};
+    res.hooksOff = await argsAfter(() => MB.ask('again', {}, false, { mobbin: false, higgs: false }));
+    await MB.prefs({ claudeHooks: true });
+    res.hooksOn = await argsAfter(() => MB.rewrite('text', 'shorter', 'Doc', ''));
+    await MB.prefs({ claudeHooks: false });
+    return res;
+  }));
   await page.screenshot({ path: path.join(out, 'window.png') });
   const files = fs.readdirSync(out);
   const png = fs.readFileSync(path.join(out, 'shot.png'));
   r.pngSize = [png.readUInt32BE(16), png.readUInt32BE(20)];
   r.pdfPages = (fs.readFileSync(path.join(out, 'Doc.pdf'), 'latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
   r.files = files; r.errors = errors; r.boardOnDisk = fs.existsSync(path.join(data, 'mochiboard/boards/smoke1.json'));
-  console.log(JSON.stringify({ ...r, prompt: r.prompt.slice(0, 120) + '…' }, null, 1));
+  console.log(JSON.stringify({ ...r, prompt: r.prompt.slice(0, 120) + '…', hooksOff: r.hooksOff.slice(-160), hooksOn: r.hooksOn.slice(-120) }, null, 1));
   await app.close();
   const ok = r.native && r.linux && r.save && r.load === 0 && r.list && r.folders === 1 && r.fonts > 0 && r.unknown === 'unknown op nope' && r.range[0] === 206 && r.range[1] === 100
     && r.pngSize[0] === 600 && r.pdfPages >= 2 && files.includes('shot.pdf') && files.includes('Doc.docx') && r.boardOnDisk && !errors.length
     && r.conn.mobbin === true && r.conn.higgsfield === false && JSON.parse(r.ask).say === 'hi from fake claude' && r.usage2.asks === 1 && r.usage2.tokensIn === 15
     && r.prompt.includes('The person asked you: sort these') && r.prompt.includes('"n":0') && r.prompt.includes('Higgsfield is TURNED OFF') && r.args.includes('mcp__claude_ai_Mobbin__search_screens')
+    && r.hooksOff.includes('disableAllHooks') && !r.hooksOn.includes('disableAllHooks')
     && r.wav === 'RIFF' && r.transcribe === 'hello from whisper';
   if (process.env.KEEP) console.log('output in', out); else fs.rmSync(data, { recursive: true, force: true });
   console.log(ok ? 'SMOKE OK' : 'SMOKE FAILED'); process.exit(ok ? 0 : 1);

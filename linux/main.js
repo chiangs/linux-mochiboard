@@ -59,6 +59,7 @@ const reply = (wc, id, ok, value) => {
 const OPS = {
   list: () => storage.list(), load: a => storage.load(a.id), save: a => storage.save(a.board), remove: a => storage.remove(a.id),
   folders: () => storage.folders(), saveFolders: a => storage.saveFolders(a.folders),
+  prefs: a => claude.setPrefs(a),
   usage: () => claude.usageSummary(), resetUsage: () => claude.resetUsage(), version: () => update.appVersion(),
   linkPreview: a => net.linkPreview(a.url || ''),
   fetchImage: async a => { const d = await net.fetchImage(a.url || ''); if (!d) throw new Error("couldn't load that image"); return d; },

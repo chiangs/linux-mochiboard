@@ -66,10 +66,22 @@ function usageSummary() {
 }
 function resetUsage() { try { fs.rmSync(P.usageFile, { force: true }); } catch (e) {} return true; }
 
+// Settings → Helpers → "Let my Claude Code hooks see Mochi's requests" (off unless switched on).
+// Off: Mochi's calls run with hooks switched off, so hooks meant for your own Claude Code sessions (like the desktop Mochi's
+// thinking meter and reply bubble) don't fire for her background requests. Skills, plugins, connectors and your login are unaffected.
+const readPrefs = () => { try { return JSON.parse(fs.readFileSync(P.prefsFile, 'utf8')) || {}; } catch (e) { return {}; } };
+let prefs = readPrefs();
+function setPrefs(p) {
+  prefs = { ...prefs, claudeHooks: !!(p && p.claudeHooks) };
+  try { fs.writeFileSync(P.prefsFile, JSON.stringify(prefs)); } catch (e) {}
+  return true;
+}
+const hookArgs = () => prefs.claudeHooks ? [] : ['--settings', JSON.stringify({ disableAllHooks: true })];
+
 // run Claude Code with a prompt and a short list of allowed tools; resolves with its text, rejects with a short reason
 async function runClaude(prompt, tools, timeout, need = 'I need Claude Code to do that.') {
   const claude = claudePath(); if (!claude) throw new Error(need);
-  const r = await run(claude, ['-p', prompt, '--output-format', 'json', ...(tools.length ? ['--allowedTools', tools.join(',')] : [])], timeout);
+  const r = await run(claude, ['-p', prompt, '--output-format', 'json', ...hookArgs(), ...(tools.length ? ['--allowedTools', tools.join(',')] : [])], timeout);
   const { text, isError } = claudeResult(r.out);
   // a failed answer (not signed in, no plan…) comes back as an error, not as words for Mochi to read
   if (isError) throw new Error(text.slice(0, 300));
@@ -110,4 +122,4 @@ async function connections() {
 // JSON can't hold "not a number" or infinity; the Mac app swaps them for 0, so this does too
 function jsonSafe(v) { return JSON.stringify(v, (k, x) => typeof x === 'number' && !isFinite(x) ? 0 : x); }
 
-module.exports = { claudePath, ask, rewrite, higgsQuote, higgsMake, drawFill, connections, usageSummary, resetUsage, jsonSafe, run };
+module.exports = { setPrefs, claudePath, ask, rewrite, higgsQuote, higgsMake, drawFill, connections, usageSummary, resetUsage, jsonSafe, run };
