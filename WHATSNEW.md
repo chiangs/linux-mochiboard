@@ -3,7 +3,13 @@
 Each update gets a short line here. Mochiboard shows the new ones in Settings when an update is ready.
 Write them for people, not for code: one line, what changed and why it's nice.
 
-## October 2026 · 1.4.1
+## October 2026 · 1.4.1 for Linux
+
+- Mochiboard runs on Linux now, on Wayland or X11, with Mochi thinking through Claude Code on your computer.
+- Install from the code with ./install.sh (and take it off again with ./uninstall.sh), or grab the AppImage.
+- Voice memos are written out on your computer with whisper.cpp, if you have it.
+
+## October 2026 · 1.4.1 (Mac)
 
 - Phone-shaped video recordings stay centered on every camera.
 

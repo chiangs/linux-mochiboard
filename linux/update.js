@@ -8,7 +8,7 @@ const P = require('./paths'), { run } = require('./claude'), { get } = require('
 
 const REPO = 'chiangs/linux-mochiboard';
 const releaseAPI = process.env.MB_RELEASE_API || `https://api.github.com/repos/${REPO}/releases/latest`;   // the override is only for testing updates
-const assetName = () => `Mochiboard-${process.arch}.AppImage`;   // x64 or arm64, as make-release.sh names them
+const assetName = () => `Mochiboard-${process.arch === 'x64' ? 'x86_64' : process.arch}.AppImage`;   // x86_64 or arm64, as make-release.sh names them
 const preview = () => process.env.MB_PREVIEW_UPDATE === '1';   // a preview of the update bar for testing
 const appRoot = path.join(__dirname, '..');
 const appVersion = () => app.getVersion();

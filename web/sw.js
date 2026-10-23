@@ -1,5 +1,5 @@
 // Keeps a copy of Mochiboard in the browser so it opens without internet (the website version).
-// The Mac app loads these files from disk, so it doesn't need this.
+// The desktop app loads these files from disk, so it doesn't need this.
 // Network first, so a new version shows up when you're online; the saved copy is the fallback when you're not.
 const CACHE = 'mochiboard-v3';
 const FILES = [

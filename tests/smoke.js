@@ -1,5 +1,6 @@
 // End-to-end smoke test: opens the real app (under Xvfb in CI) with a throwaway data folder, and drives the bridge.
 //   xvfb-run -a node tests/smoke.js
+//   MB_APP=~/.local/lib/mochiboard/app xvfb-run -a node tests/smoke.js   (an installed copy, with the Electron install.sh chose)
 const { _electron: electron } = require('playwright');
 const fs = require('fs'), os = require('os'), path = require('path');
 
@@ -18,7 +19,9 @@ for a; do case "$a" in *.wav) head -c 4 "$a" > "${data}/wav-magic.txt";; esac; d
 echo " [BLANK_AUDIO] hello from whisper"
 `, { mode: 0o755 });
   fs.writeFileSync(path.join(data, 'model.bin'), 'x');
-  const app = await electron.launch({ args: [path.join(__dirname, '..'), '--no-sandbox'], env: { ...process.env, XDG_DATA_HOME: data, HOME: data, MB_WHISPER_MODEL: path.join(data, 'model.bin') } });
+  const dir = process.env.MB_APP || path.join(__dirname, '..');
+  const installed = process.env.MB_APP ? JSON.parse(fs.readFileSync(path.join(dir, 'install.json'), 'utf8')) : {};
+  const app = await electron.launch({ ...(installed.electron ? { executablePath: installed.electron } : {}), args: [dir, '--no-sandbox'], env: { ...process.env, XDG_DATA_HOME: data, HOME: data, MB_WHISPER_MODEL: path.join(data, 'model.bin') } });
   // save dialogs answer themselves: everything lands in out/
   await app.evaluate(({ dialog }, out) => { dialog.showSaveDialog = async (w, o) => ({ canceled: false, filePath: out + '/' + o.defaultPath.split('/').pop() }); }, out);
   const page = await app.firstWindow(), errors = [];

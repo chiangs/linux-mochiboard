@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Mochiboard
+GenericName=Planning canvas
+Comment=A cozy planning canvas with Mochi inside
+Exec=mochiboard %U
+Icon=mochiboard
+Terminal=false
+Categories=Office;Graphics;
+Keywords=board;canvas;moodboard;notes;wireframe;planning;claude;
+StartupWMClass=mochiboard
+StartupNotify=true

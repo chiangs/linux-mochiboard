@@ -77,7 +77,7 @@ async function runClaude(prompt, tools, timeout, need = 'I need Claude Code to d
   return text;
 }
 
-const NEED = 'I need Claude Code to think. Set it up from mochiboard.app/connect.html, then try again.';
+const NEED = 'I need Claude Code to think. Set it up (Settings → Helpers shows how), then try again.';
 function ask(a) {
   const { prompt: request = '', board = {}, confirmed = false, mobbin = true, higgs = true } = a;
   // only the helpers the person has switched on in Settings

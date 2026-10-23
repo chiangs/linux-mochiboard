@@ -1,0 +1,34 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install packages
+        run: |
+          pacman -Syu --noconfirm --needed git nodejs npm electron xorg-server-xvfb fontconfig ttf-dejavu nss alsa-lib gtk3 libxss libxtst at-spi2-core libdrm mesa
+      - uses: actions/checkout@v4
+      - name: Shell syntax
+        run: bash -n install.sh && bash -n uninstall.sh && bash -n make-release.sh
+      - name: JavaScript syntax
+        run: for f in linux/*.js web/app.js web/bridge.js tests/*.js; do node --check "$f"; done
+      - name: Dependencies
+        run: npm ci --no-audit --no-fund && node node_modules/electron/install.js
+      - name: Smoke test (the real app, with stand-in claude and whisper)
+        run: xvfb-run -a node tests/smoke.js
+      - name: Install, run the installed copy, uninstall
+        run: |
+          useradd -m tester && cp -r . /home/tester/mb && chown -R tester /home/tester/mb
+          su tester -c 'cd ~/mb && ./install.sh --yes --no-open'
+          su tester -c 'cd ~/mb && MB_APP=$HOME/.local/lib/mochiboard/app xvfb-run -a node tests/smoke.js'
+          su tester -c 'cd ~/mb && ./uninstall.sh --purge' && test ! -e /home/tester/.local/bin/mochiboard
+      - name: Build the AppImage
+        run: npx electron-builder --linux AppImage --x64 --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mochiboard-x86_64.AppImage
+          path: build/release/*.AppImage

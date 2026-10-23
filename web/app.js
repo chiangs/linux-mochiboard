@@ -27,7 +27,7 @@
       card('todo', { x: 0, y: 260, text: 'screens', items: [{ t: 'Onboarding', done: false }, { t: 'Home', done: false }, { t: 'Settings', done: false }] }),
       card('note', { x: 280, y: 260, text: 'Competitors + what they miss', color: 'lilac' }),
     ], tray: [] }),
-    'Brain dump': () => ({ cards: [card('title', { x: 0, y: -40, text: 'Brain dump' }), card('note', { x: 0, y: 60, text: 'Dump everything in Unsorted with ⌘K, then ask Mochi to sort it ✦', color: 'butter' })],
+    'Brain dump': () => ({ cards: [card('title', { x: 0, y: -40, text: 'Brain dump' }), card('note', { x: 0, y: 60, text: 'Dump everything in Unsorted with Ctrl+K, then ask Mochi to sort it ✦', color: 'butter' })],
       tray: ['call the printer', 'idea: animated logo', 'that font from the cafe menu', 'reply to Sam', 'moodboard for spring'].map(t => card('note', { text: t })) }),
   };
   function card(type, o = {}) {
@@ -527,7 +527,7 @@
       case 'ink': return `<svg viewBox="0 0 ${c.ow} ${c.oh}" preserveAspectRatio="none">${inkPath(c.pts, c.pen, c.size, c.ink, true)}</svg>`;
       case 'frame': return `<div class="fr-body"></div><div class="fr-name">${esc(c.name || 'Screen')}</div>`;
       case 'box': return `<div class="bx"></div>${c.img && !c.src ? `<div class="bx-ph"><span class="mi">image</span><span class="bx-l">${esc(c.img)}</span></div>` : ''}`;
-      case 'font': { const f = esc(c.font || 'DM Sans'); useFont(c.font); return `<div class="fs-aa" style="font-family:'${f}', system-ui">Aa</div><div class="fs-meta"><b>${f}</b><span class="fs-src">${onMac(c.font) ? 'On your Mac' : 'Google Fonts'}</span></div><div class="fs-sample text" style="font-family:'${f}', system-ui">${esc(c.text || 'The quick brown fox jumps over the lazy dog')}</div>`; }
+      case 'font': { const f = esc(c.font || 'DM Sans'); useFont(c.font); return `<div class="fs-aa" style="font-family:'${f}', system-ui">Aa</div><div class="fs-meta"><b>${f}</b><span class="fs-src">${onMac(c.font) ? 'On your computer' : 'Google Fonts'}</span></div><div class="fs-sample text" style="font-family:'${f}', system-ui">${esc(c.text || 'The quick brown fox jumps over the lazy dog')}</div>`; }
       case 'icon': return `<span class="mi">${esc(c.name || 'star')}</span>`;
       case 'text': return `<div class="text tx">${esc(c.text || '')}</div>`;
       case 'coll': return `<div class="coll-head"><span class="text">${esc(c.text)}</span></div><div class="coll-frame"></div>${(c.kids || []).length ? '' : '<div class="coll-empty">Drop cards here</div>'}`;
@@ -957,7 +957,7 @@
       else {
         endEdit();
         if (e.shiftKey) { sel.has(id) ? sel.delete(id) : sel.add(id); selectOnly([...sel]); }
-        else if (e.metaKey || e.ctrlKey) selectOnly([id]);   // ⌘-click reaches inside a group for just this piece
+        else if (e.metaKey || e.ctrlKey) selectOnly([id]);   // Ctrl-click reaches inside a group for just this piece
         else if (!sel.has(id)) selectOnly(groupOf(id));
         const ids = new Set(sel); [...sel].forEach(i => { const c = byId(i); if (c?.type === 'coll') (c.kids || []).forEach(k => ids.add(k)); if (c?.type === 'frame') onFrame(c).forEach(k => ids.add(k.id)); });
         drag = { mode: 'move', sx: w.x, sy: w.y, start: [...ids].map(i => byId(i)).filter(Boolean).map(c => ({ c, x: c.x, y: c.y })), moved: false };
@@ -1081,7 +1081,7 @@
       else if (e.target.matches('span') && !e.target.isContentEditable) startEdit(c.id, e.target);
     }
   });
-  // trackpad: two fingers pan, pinch (or ⌘/ctrl + scroll) zooms
+  // trackpad: two fingers pan, pinch (or ctrl + scroll) zooms
   stage.addEventListener('wheel', e => {
     if (e.target.closest('.tray, .m-bubble, .cpop, .home, .m-chat, .design, .side, .row-menu, .stamp-pick, .wheel-stamps, .docview, .settings, .shapepick, .tplpick')) return; e.preventDefault();
     if (e.ctrlKey || e.metaKey) zoomAt(e.clientX, e.clientY, view.z * Math.exp(-e.deltaY * .01));
@@ -1101,7 +1101,7 @@
     addEventListener('pointermove', mv); addEventListener('pointerup', up);
   });
 
-  // no Mac beep: keys pressed on the board (not while typing) are Mochiboard's own, so tell macOS they were handled.
+  // no system beep: keys pressed on the board (not while typing) are Mochiboard's own, so tell the system they were handled.
   // Otherwise Delete, Escape, arrows and the letter shortcuts fall through to the window, and macOS beeps.
   addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
@@ -1109,7 +1109,7 @@
     if (/^(Backspace|Delete|Escape|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Home|End|PageUp|PageDown)$/.test(e.key) || e.key.length === 1) e.preventDefault();
   });
 
-  // ---------- quick capture (⌘K) ----------
+  // ---------- quick capture (Ctrl+K) ----------
   const capture = on => { $('capture').classList.toggle('on', on); if (on) { $('capInput').value = ''; $('capInput').focus(); } else $('capInput').blur(); };
   // clicking anywhere outside the box closes it (what you typed isn't saved unless you pressed Enter)
   addEventListener('pointerdown', e => { if ($('capture').classList.contains('on') && !e.target.closest('.capture')) capture(false); }, true);
@@ -1158,7 +1158,7 @@
   $('tbCustomize').onclick = () => { closeSettings(); setTimeout(toolbarEditor, 120); };
   document.addEventListener('pointerdown', e => { const p = $('tbEdit'); if (p && !p.hidden && !e.target.closest('#tbEdit, #rowMenu')) p.hidden = true; }, true);
 
-  // ---------- just the board: every panel tucks away (⌘\, like Figma), and comes back with ⌘\ or Esc ----------
+  // ---------- just the board: every panel tucks away (Ctrl+\, like Figma), and comes back with Ctrl+\ or Esc ----------
   const CLEAN_EL = ['side', 'tray', 'dock', 'keys', 'design'].map(id => $(id)).concat([document.querySelector('.top')]).filter(Boolean);
   function setClean(on) {
     if (on === document.body.classList.contains('clean') || (on && document.body.classList.contains('phone'))) return;
@@ -1175,7 +1175,7 @@
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); capture(true); return; }
     if ((e.metaKey || e.ctrlKey) && (e.key === '\\' || e.code === 'Backslash') && !homeAt && !docCard) { e.preventDefault(); setClean(!document.body.classList.contains('clean')); return; }
     if (e.key === 'Escape' && document.body.classList.contains('clean') && !editing && !drawOn) { setClean(false); return; }
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.target.closest('input, textarea, [contenteditable="true"]') && !homeAt) { e.preventDefault(); travel(e.shiftKey ? 1 : -1); return; }   // inside text, ⌘Z undoes typing as usual
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.target.closest('input, textarea, [contenteditable="true"]') && !homeAt) { e.preventDefault(); travel(e.shiftKey ? 1 : -1); return; }   // inside text, Ctrl+Z undoes typing as usual
     if (e.key === 'Escape' && homeAt) { closeHome(); return; }
     if (e.key === 'Enter' && $('coach').classList.contains('on') && !editing && !document.activeElement?.closest?.('input, textarea, [contenteditable="true"]') && !$('capture').classList.contains('on')) { e.preventDefault(); $('coachNext').click(); return; }
     if (e.key === 'Escape' && $('coach').classList.contains('on') && !editing && !document.activeElement?.closest?.('input, textarea, [contenteditable="true"]') && !$('capture').classList.contains('on')) { endTour(); return; }
@@ -1249,7 +1249,7 @@
   $('newFolder').onclick = async () => { const f = makeFolder(uniqueName(folders, 'New folder'), scope().p?.id || null); await saveLib(); await refreshBoards(); renameNewest('.node.folder', f); };
   $('newProject').onclick = async () => { const p = makeProject(uniqueName(projects, 'New project')); await saveLib(); await refreshBoards(); renameNewest('.node.project', p); };
 
-  // ---------- copy, cut and paste cards: works across boards (the clip lives in Mochiboard, plus their words go to the Mac clipboard) ----------
+  // ---------- copy, cut and paste cards: works across boards (the clip lives in Mochiboard, plus their words go to the system clipboard) ----------
   const CLIP = 'mochiboard:clip';
   let lastClip = null, pendingPaste = false, pasteN = 0;
   try { lastClip = JSON.parse(localStorage.getItem(CLIP) || 'null'); } catch (e) {}
@@ -1324,7 +1324,7 @@
   // ---------- settings: Mochi's color and greeting, her helpers, how the board looks ----------
   const MOCHI_COLORS = { blue: { B: '#33c7ff', S: '#ccf5ff', D: '#1480db' }, pink: { B: '#ff8fc2', S: '#ffe0ee', D: '#e0559a' }, mint: { B: '#5fdba0', S: '#d9fbe9', D: '#2fae73' },
     lilac: { B: '#b49bff', S: '#ece5ff', D: '#7e5ee6' }, butter: { B: '#ffd54f', S: '#fff4c4', D: '#e0a800' }, peach: { B: '#ffa978', S: '#ffe6d6', D: '#e57841' }, night: { B: '#4a4f7a', S: '#8d93c9', D: '#2b2e4f' } };
-  const settings = Object.assign({ mochi: 'blue', greet: true, grid: true, tilt: true, motion: true, keys: true, theme: 'system', chat: 'normal', emoji: true, noteColor: 'random', snap: false, ai: true, mobbin: true, higgs: true, chatKeep: 'board', chatMax: '60', cursor: '#ff9ec4', fancyCursor: true, colors: { light: {}, dark: {} } }, (() => { try { return JSON.parse(localStorage.getItem('mochiboard:settings') || '{}'); } catch (e) { return {}; } })());
+  const settings = Object.assign({ mochi: 'blue', winButtons: true, greet: true, grid: true, tilt: true, motion: true, keys: true, theme: 'system', chat: 'normal', emoji: true, noteColor: 'random', snap: false, ai: true, mobbin: true, higgs: true, chatKeep: 'board', chatMax: '60', cursor: '#ff9ec4', fancyCursor: true, colors: { light: {}, dark: {} } }, (() => { try { return JSON.parse(localStorage.getItem('mochiboard:settings') || '{}'); } catch (e) { return {}; } })());
   try { if (localStorage.getItem('mochiboard:keys') === 'hide') settings.keys = false; } catch (e) {}
   function applySettings() {
     queueMicrotask(() => applyColors()); queueMicrotask(() => applyGridShape()); queueMicrotask(() => applyToolbar());
@@ -1335,12 +1335,13 @@
     $('obNotes').innerHTML = $('noteColors').innerHTML = `<button data-nc="random" class="rand ${settings.noteColor === 'random' ? 'on' : ''}" title="A random pastel"></button>` + COLOR_NAMES.map(n => `<button data-nc="${n}" title="${n}" style="background:${COLORS[n]}" class="${settings.noteColor === n ? 'on' : ''}"></button>`).join('');
     document.body.classList.toggle('no-grid', !settings.grid); document.body.classList.toggle('neat', !settings.tilt); document.body.classList.toggle('calm', !settings.motion);
     $('keys').classList.toggle('hide', !settings.keys);
+    document.documentElement.classList.toggle('no-win-buttons', settings.winButtons === false);   // tiling compositors place the window themselves
     $('obMochi').innerHTML = $('mochiColors').innerHTML = Object.entries(MOCHI_COLORS).map(([n, c]) => `<button data-mc="${n}" title="${n}" style="background:${c.B}" class="${settings.mochi === n ? 'on' : ''}"></button>`).join('');
     document.querySelectorAll('[data-set]').forEach(t => t.checked = !!settings[t.dataset.set]);
     try { localStorage.setItem('mochiboard:settings', JSON.stringify(settings)); localStorage.setItem('mochiboard:keys', settings.keys ? 'show' : 'hide'); } catch (e) {}
   }
   // ---------- your cursor: the same little pointer and name bubble as jessa.art, in your color ----------
-  // It follows the mouse; over a card it turns into an open hand, and a fist while you drag. Text and inputs keep the Mac's own I-beam.
+  // It follows the mouse; over a card it turns into an open hand, and a fist while you drag. Text and inputs keep the system's own I-beam.
   const myCur = document.createElement('div'); myCur.className = 'mcur'; myCur.setAttribute('aria-hidden', 'true');
   myCur.innerHTML = `<svg class="tipv" viewBox="-1 -1 12.3 10.9"><path d="M3.4554 0.917919C4.24277 -0.305972 6.03201 -0.305974 6.81938 0.917917L9.94507 5.7765C11.0536 7.49959 9.16221 9.57694 7.34302 8.63439L6.05709 7.96814C5.48011 7.6692 4.79386 7.66921 4.21689 7.96817L2.93214 8.63388C1.11295 9.57651 -0.778528 7.49915 0.330012 5.77603L3.4554 0.917919Z"/></svg>`
     + `<svg class="grabhand open" viewBox="0 0 34 34"><g class="o"><rect x="8.5" y="15" width="19.5" height="16" rx="7"/><rect x="8" y="4.2" width="5" height="15.5" rx="2.5" transform="rotate(-8 10.5 19)"/><rect x="13.2" y="1.2" width="5" height="17.5" rx="2.5"/><rect x="18.4" y="2.2" width="5" height="16.5" rx="2.5"/><rect x="23.4" y="5.6" width="4.6" height="14" rx="2.3" transform="rotate(8 25.7 19)"/><rect x="7.6" y="15.5" width="3.8" height="9" rx="1.9" transform="rotate(-42 9.5 24)"/></g><g class="f"><rect x="8.5" y="15" width="19.5" height="16" rx="7"/><rect x="8" y="4.2" width="5" height="15.5" rx="2.5" transform="rotate(-8 10.5 19)"/><rect x="13.2" y="1.2" width="5" height="17.5" rx="2.5"/><rect x="18.4" y="2.2" width="5" height="16.5" rx="2.5"/><rect x="23.4" y="5.6" width="4.6" height="14" rx="2.3" transform="rotate(8 25.7 19)"/><rect x="7.6" y="15.5" width="3.8" height="9" rx="1.9" transform="rotate(-42 9.5 24)"/></g></svg>`
@@ -1357,7 +1358,7 @@
   addEventListener('pointermove', e => {
     if (e.pointerType !== 'mouse' || !document.body.classList.contains('fancy-cursor')) return;
     myCur.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`; myCur.classList.add('show');
-    // at the window's edges, hand back the Mac's own cursor so its resize arrows show (and you can see where to grab)
+    // at the window's edges, hand back the system's own cursor so its resize arrows show (and you can see where to grab)
     const edge = MB.native && (e.clientX < 8 || e.clientY < 8 || e.clientX > innerWidth - 8 || e.clientY > innerHeight - 8); document.body.classList.toggle('cur-edge', edge);
     const t = e.target, native = edge || !!(t.closest && t.closest(NATIVE));
     myCur.classList.toggle('hide', native); document.body.classList.toggle('cur-native', native);
@@ -1398,19 +1399,19 @@
   $('setName').onkeydown = e => e.stopPropagation();
   $('curColors').onclick = e => { const b = e.target.closest('[data-cc]'); if (b) { settings.cursor = b.dataset.cc; applySettings(); } };
   $('colReset').onclick = () => { settings.colors[modeName()] = {}; applySettings(); };
-  $('gearBtn').onclick = e => { e.stopPropagation(); if (placing) stopPlacing(); if (sel.size) selectOnly([]); checkUpdate(); showUsage(); $('boardCount').textContent = `${boardList.length} board${boardList.length === 1 ? '' : 's'}, kept on this Mac. They never leave your computer.`; showConnections(true); $('settings').classList.add('on'); };
+  $('gearBtn').onclick = e => { e.stopPropagation(); if (placing) stopPlacing(); if (sel.size) selectOnly([]); checkUpdate(); showUsage(); $('boardCount').textContent = `${boardList.length} board${boardList.length === 1 ? '' : 's'}, kept on this computer. They never leave your computer.`; showConnections(true); $('settings').classList.add('on'); };
   const closeSettings = () => $('settings').classList.remove('on');
   // settings tabs: one topic at a time, so it isn't one long scroll
   function setTab(t) { $('setTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); $('settings').querySelectorAll('.set-body section[data-tab]').forEach(sec => sec.classList.toggle('tab-off', sec.dataset.tab !== t)); $('settings').querySelector('.set-body').scrollTop = 0; if (t === 'helpers') showUsage(); }
   $('setTabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); };
   setTab('general');
-  // Claude usage (Mac app): Mochi's own tally, plus a door to the plan limits page
+  // Claude usage (desktop app): Mochi's own tally, plus a door to the plan limits page
   const kTok = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1000 ? Math.round(n / 1000) + 'k' : String(Math.round(n));
   const usLine = u => !u || !u.asks ? 'No asks yet' : `${u.asks} ask${u.asks === 1 ? '' : 's'} · ${kTok(u.tokensIn + u.tokensOut)} tokens`;
   async function showUsage() {
     if (!MB.native) return; let u = null; try { u = await MB.usage(); } catch (e) {}
     if (!u) return; $('usToday').textContent = usLine(u.today); $('usWeek').textContent = usLine(u.week); $('usAll').textContent = usLine(u.all);
-    $('usNote').textContent = (u.week.cost >= .01 ? `About $${u.week.cost.toFixed(2)} this week if you paid per request (on a Pro or Max plan you don't). ` : '') + "Just Mochi's share, counted on this Mac. Your plan's limits cover everything you do with Claude.";
+    $('usNote').textContent = (u.week.cost >= .01 ? `About $${u.week.cost.toFixed(2)} this week if you paid per request (on a Pro or Max plan you don't). ` : '') + "Just Mochi's share, counted on this computer. Your plan's limits cover everything you do with Claude.";
   }
   $('usLimits').onclick = () => MB.openURL('https://claude.ai/settings/usage');
   $('usReset').onclick = async () => { await MB.resetUsage(); showUsage(); };
@@ -1478,12 +1479,12 @@
     const brief = c => ({ id: c.id, type: c.type, x: Math.round(c.x), y: Math.round(c.y), w: Math.round(c.w), h: Math.round(c.h), color: c.color,
       text: (c.text || c.title || c.label || '').slice(0, 300), font: c.font, name: c.name, kids: c.kids, desc: c.desc, body: c.body ? c.body.slice(0, 600) : undefined, shape: c.shape, tag: c.tagText, items: c.items ? c.items.map(i => i.t) : undefined, hex: c.hex, url: c.url, selected: sel.has(c.id) || undefined });
     return { name: board.name, cards: board.cards.map(brief), links: board.links.map(l => [l.a, l.b]), unsorted: board.tray.map(brief), boardColors: board.palette,
-      fontsOnThisMac: FONTS.filter(f => !/^(\.|Apple |System|STIX|Noto Sans [A-Z][a-z]+ [A-Z])/.test(f)).slice(0, 400),
+      fontsOnThisComputer: FONTS.filter(f => !/^(\.|Apple |System|STIX|Noto Sans [A-Z][a-z]+ [A-Z])/.test(f)).slice(0, 400),
       recentChat: (settings.chatKeep === 'off' ? chatLog().slice(-2) : chatLog().slice(-8)).map(m => `${m.who === 'me' ? 'Person' : 'Mochi'}: ${m.text}`),
       mochiStyle: (settings.name ? `The person's name is ${settings.name}; use it now and then, not in every reply. ` : '') + ({ quiet: 'Keep "say" to one short sentence.', normal: 'Keep "say" short and warm.', chatty: 'Be warm, playful and encouraging in "say" (2 to 3 sentences, a little cheer is welcome).' }[settings.chat] || '') + (settings.emoji ? ' A couple of fitting emojis in "say" are welcome.' : ' Never use emojis.'),
       library: { projects: projects.map(p => ({ name: p.name, folders: foldersIn(p.id).map(f => f.name) })), foldersNotInAProject: looseFolders().map(f => f.name), boards: boardList.map(b => ({ id: b.id, name: b.name, folder: (folders.find(f => f.id === b.folder) || {}).name || null, current: b.id === board.id || undefined })) } };
   }
-  // without AI (switched off, or Claude Code not installed) Mochi still helps with the simple stuff, right here on the Mac
+  // without AI (switched off, or Claude Code not installed) Mochi still helps with the simple stuff, right here on your computer
   function offlineMochi(q, why) {
     const notes = board.cards.filter(c => c.type === 'note' && !parentOf(c.id));
     if (/group|sort|organi[sz]e|tidy|line up/i.test(q) && notes.length) {
@@ -1494,28 +1495,28 @@
     say(`${why} Everything else on the board works without me thinking ✦`, 0, (haveClaude === false || offlineMochi.signin) && settings.ai ? [{ label: 'Show me how to connect', run: () => MB.openURL(GUIDE) }] : []); offlineMochi.signin = false;
   }
   let haveClaude = null;
-  const GUIDE = 'https://mochiboard.app/connect.html';   // the step-by-step page for connecting Claude Code
+  const GUIDE = 'https://github.com/chiangs/linux-mochiboard#connect-claude-code';   // the step-by-step page for connecting Claude Code
   const SIGNIN = /log ?in|api key|auth|credential|subscription|not (signed|logged)|oauth|unauthori[sz]ed|401|403/i;
-  // the web demo: Mochi tidies for real, and for anything that needs AI she points you to the Mac app
-  const getApp = () => MB.openURL(MB.getURL || 'https://github.com/jessawolfe-ux/mochiboard/releases/latest/download/Mochiboard.zip');
+  // the web demo: Mochi tidies for real, and for anything that needs AI she points you to the desktop app
+  const getApp = () => MB.openURL(MB.getURL || 'https://github.com/chiangs/linux-mochiboard/releases/latest');
   const DL = [{ label: 'Download Mochiboard ✦', run: getApp }, { label: 'Keep playing', ghost: true, run: () => {} }];
   function webMochi(q) {
     const notes = board.cards.filter(c => c.type === 'note' && !parentOf(c.id));
-    if (/group|sort|organi[sz]e|tidy|line up/i.test(q) && notes.length) return offlineMochi(q, 'In the Mac app I can sort them by theme too, with Claude.');
-    const what = /mobbin/i.test(q) ? 'Mobbin lives in your Claude account, and I can only reach it from the Mac app.' : /higgsfield|photo|picture|image/i.test(q) ? 'Making pictures with Higgsfield happens in the Mac app, where I can check the price with you first.' : 'I think with Claude Code, and that lives in the Mac app.';
+    if (/group|sort|organi[sz]e|tidy|line up/i.test(q) && notes.length) return offlineMochi(q, 'In the desktop app I can sort them by theme too, with Claude.');
+    const what = /mobbin/i.test(q) ? 'Mobbin lives in your Claude account, and I can only reach it from the desktop app.' : /higgsfield|photo|picture|image/i.test(q) ? 'Making pictures with Higgsfield happens in the desktop app, where I can check the price with you first.' : 'I think with Claude Code, and that lives in the desktop app.';
     say(`I'd love to help with that! ${what} Download me and I'll connect to your Claude, Mobbin and Higgsfield ✦`, 0, DL);
   }
   async function ask(q, confirmed = false) {
     if (MB.web) { if (!chatOpen()) mochiOpen(true); addMsg('me', q); return webMochi(q); }
     if (!settings.ai || haveClaude === false) { if (!chatOpen()) mochiOpen(true); addMsg('me', q); }
     if (!settings.ai) return offlineMochi(q, "My thinking is switched off in Settings, so I can only do simple tidying.");
-    if (haveClaude === false) { await showConnections(true); if (haveClaude === false) return offlineMochi(q, "I need Claude Code on this Mac to think. It's a one-time setup with your Claude account."); }   // look again first: they may have just set it up
+    if (haveClaude === false) { await showConnections(true); if (haveClaude === false) return offlineMochi(q, "I need Claude Code on this computer to think. It's a one-time setup with your Claude account."); }   // look again first: they may have just set it up
     if (!navigator.onLine) { if (!chatOpen()) mochiOpen(true); addMsg('me', q); return offlineMochi(q, "You're offline, so I can't think with Claude right now. I'll be back when the internet is."); }
     if (!chatOpen()) mochiOpen(true);
     if (!confirmed) addMsg('me', q); else addMsg('mochi', 'Making it… this can take a minute ✦');
     $('mochi').classList.add('thinking'); goo.think(true); favGoo?.think(true); typing(true);
     try { const raw = await MB.ask(q, snapshot(), confirmed, { mobbin: settings.mobbin, higgs: settings.higgs }); await applyMochi(parse(raw), q); }
-    catch (err) { if (/Claude Code/.test(err.message)) { haveClaude = false; return offlineMochi(q, "I need Claude Code on this Mac to think. It's a one-time setup with your Claude account."); }
+    catch (err) { if (/Claude Code/.test(err.message)) { haveClaude = false; return offlineMochi(q, "I need Claude Code on this computer to think. It's a one-time setup with your Claude account."); }
       if (SIGNIN.test(err.message)) { offlineMochi.signin = true; return offlineMochi(q, "Claude Code is here, but it isn't signed in yet. Open Terminal, type claude, and sign in with a Claude Pro or Max account."); }
       say("Hmm, I couldn't reach Claude: " + err.message); }
     finally { $('mochi').classList.remove('thinking'); goo.think(false); favGoo?.think(false); typing(false); }
@@ -1780,7 +1781,7 @@
   const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   async function exportCards(cs, name, pdf) {
     if (!cs.length) return say('Nothing to export yet ✦', 2500);
-    if (MB.web) return say('Saving images and PDFs works in the Mac app ✦', 0, DL);
+    if (MB.web) return say('Saving images and PDFs works in the desktop app ✦', 0, DL);
     const all = new Set(cs); cs.forEach(c => { if (c.type === 'coll') (c.kids || []).forEach(k => byId(k) && all.add(byId(k))); if (c.type === 'frame') onFrame(c).forEach(k => all.add(k)); });
     const list = [...all], x0 = Math.min(...list.map(c => c.x)) - 24, y0 = Math.min(...list.map(c => c.y)) - 40, x1 = Math.max(...list.map(c => c.x + c.w)) + 24, y1 = Math.max(...list.map(c => c.y + c.h)) + 24;
     const keep = { ...view }, keepSel = [...sel], r = stage.getBoundingClientRect(), bw = x1 - x0, bh = y1 - y0;
@@ -1809,8 +1810,8 @@
     if (el) {
       if (!sel.has(el.dataset.id)) selectOnly([el.dataset.id]); const cs = selCards();
       boardMenu(e, [
-        ...(cs.length > 1 && !cs.every(c => c.group && c.group === cs[0].group) ? [{ label: 'Group  ⌘G', run: () => { remember(); groupSel(true); } }] : []),
-        ...(cs.some(c => c.group) ? [{ label: 'Ungroup  ⇧⌘G', run: () => { remember(); groupSel(false); } }] : []),
+        ...(cs.length > 1 && !cs.every(c => c.group && c.group === cs[0].group) ? [{ label: 'Group  Ctrl+G', run: () => { remember(); groupSel(true); } }] : []),
+        ...(cs.some(c => c.group) ? [{ label: 'Ungroup  Ctrl+Shift+G', run: () => { remember(); groupSel(false); } }] : []),
         { label: 'Export as image', run: () => exportCards(cs, cardName(cs), false) },
         { label: 'Export as PDF', run: () => exportCards(cs, cardName(cs), true) },
         ...(spotsIn(cs).length ? [{ label: `Fill ${spotsIn(cs).length} image spot${spotsIn(cs).length > 1 ? 's' : ''}…`, run: () => offerFill(spotsIn(cs)) }] : []), '-',
@@ -1860,7 +1861,7 @@
   async function camOn(c) {
     if (cams.has(c.id)) return cams.get(c.id);
     let stream; try { stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true }); }
-    catch (e) { c.camErr = 'Mochiboard needs the camera. Turn it on in System Settings → Privacy & Security → Camera, then click Start recording again.'; c.camRest = false; renderCard(c); return null; }
+    catch (e) { c.camErr = 'Mochiboard can’t reach a camera. Check that one is connected and not in use by another app, then click Start recording again.'; c.camRest = false; renderCard(c); return null; }
     const view = document.createElement('video'); view.className = 'vd-live'; view.muted = true; view.playsInline = true; view.autoplay = true; view.srcObject = stream;
     const cam = { stream, view, idle: 0 }; cams.set(c.id, cam); c.camErr = ''; c.camRest = false;
     // the camera rests after a minute of waiting (no recording), and switches off if the card goes away
@@ -1929,16 +1930,16 @@
   async function readyToRecord() {
     if (micOK) { if (!warm) try { warmMic(await navigator.mediaDevices.getUserMedia({ audio: true })); } catch (e) {} return true; }
     try { warmMic(await navigator.mediaDevices.getUserMedia({ audio: true })); }
-    catch (e) { say("Mochiboard needs the microphone for voice memos. Turn it on in System Settings → Privacy & Security → Microphone, then try again ✦", 10000); return false; }
+    catch (e) { say("Mochiboard can’t reach a microphone for voice memos. Check your sound settings (and that one is connected), then try again ✦", 10000); return false; }
     micOK = true;
     const sp = await MB.speechAuth().catch(() => 'off');
-    if (sp === 'off') say("Recording works! To have me write memos out, turn on Speech Recognition for Mochiboard in System Settings → Privacy & Security.", 9000);
+    if (sp === 'off') say("Recording works! To have me write memos out, install whisper.cpp (yay -S whisper.cpp) and I’ll do it on your computer.", 9000);
     return true;
   }
   async function record(c) {
     let stream = warm && warm.active ? warm : null; warm = null; clearTimeout(warmT);
     try { if (!stream) stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { say("I can't hear you yet. Let Mochiboard use the microphone (System Settings → Privacy & Security → Microphone), then try again.", 9000); if (!c.src) { sel = new Set([c.id]); removeSelected(); } return; }
+    catch (e) { say("I can't hear you yet. Check that your microphone is connected and not muted in your sound settings, then try again.", 9000); if (!c.src) { sel = new Set([c.id]); removeSelected(); } return; }
     const chunks = [], recorder = new MediaRecorder(stream), ac = new AudioContext(), an = ac.createAnalyser(); an.fftSize = 256; ac.createMediaStreamSource(stream).connect(an);
     const L = { recorder, stream, ac, start: Date.now(), paused: 0, pausedAt: 0 }; live.set(c.id, L);
     c.rec = true; c.ready = false; c.paused = false; c.starting = true; renderCard(c); selectOnly([c.id]);
@@ -2035,14 +2036,14 @@
     if (by) { dy += by.d; g += `<line x1="${Math.min(x0, by.o.x) + O - 10}" y1="${by.at + O}" x2="${Math.max(x1, by.o.x + by.o.w) + O + 10}" y2="${by.at + O}"/>`; }
     $('guides').innerHTML = g; return { dx, dy };
   }
-  // fonts: use what's on this Mac; anything else is fetched from Google Fonts so the real type shows
+  // fonts: use what's on this computer; anything else is fetched from Google Fonts so the real type shows
   const fontsLoaded = new Set();
   const onMac = f => FONTS.some(x => x.toLowerCase() === String(f || '').toLowerCase()) || ['DM Sans', 'Caveat'].includes(f);
   function useFont(f) {
     if (!f || onMac(f) || fontsLoaded.has(f)) return; fontsLoaded.add(f);
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, '+')}:wght@400;700&display=swap`; document.head.appendChild(l);
   }
-  // groups: ready-made pieces arrive grouped; ⌘G groups a selection, ⇧⌘G ungroups
+  // groups: ready-made pieces arrive grouped; Ctrl+G groups a selection, Ctrl+Shift+G ungroups
   const groupOf = id => { const g = byId(id)?.group; return g ? board.cards.filter(c => c.group === g).map(c => c.id) : [id]; };
   function groupSel(on) { const cs = selCards(); if (on && cs.length < 2) return; const g = on ? uid() : null; cs.forEach(c => { if (g) c.group = g; else delete c.group; renderCard(c); }); selectOnly(cs.map(c => c.id)); $('selbar').dataset.key = ''; save(); }
   // ready-made pieces, in clean gray; bars stretch to the screen they land on
@@ -2213,7 +2214,7 @@
     if (one && one.type !== 'frame') h += `<div class="dz-sec"><div class="dz-grid">${field('rot', 'Rotate°', one.rot || 0, 'number', 'wide')}</div></div>`;
     if (one?.type === 'icon') h += `<div class="dz-sec"><div class="label">Icon</div><div class="dz-grid">${field('isz', 'Size', Math.round(one.w))}${field('color', 'Color', one.color || '#27272a', 'color')}</div><div class="dz-row"><button data-swap="1" style="font:600 11.5px/1 var(--font);gap:6px;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:16px">${esc(one.name)}</span> Change icon</button></div></div>`;
     const groupedSel = cs.length > 1 && cs.every(c => c.group && c.group === cs[0].group);
-    if (cs.length > 1) h += `<div class="dz-sec"><div class="dz-row"><button data-grp="${groupedSel ? 'off' : 'on'}" style="font:600 11.5px/1 var(--font)">${groupedSel ? 'Ungroup  ⇧⌘G' : 'Group  ⌘G'}</button></div></div>`;
+    if (cs.length > 1) h += `<div class="dz-sec"><div class="dz-row"><button data-grp="${groupedSel ? 'off' : 'on'}" style="font:600 11.5px/1 var(--font)">${groupedSel ? 'Ungroup  Ctrl+Shift+G' : 'Group  Ctrl+G'}</button></div></div>`;
     if (one?.type === 'frame') h += `<div class="dz-sec"><div class="dz-grid">${field('name', 'Name', one.name || 'Screen', 'text', 'wide')}<label class="dz-f wide"><span>Device</span><select data-k="device">${['Custom', ...Object.keys(DEVICES)].map(n => `<option${(one.device || 'Custom') === n ? ' selected' : ''}>${n}</option>`).join('')}</select></label>${field('fill', 'Fill', one.fill || '#ffffff', 'color')}${field('radius', 'Corners', one.radius ?? 0)}</div></div>`;
     if (one?.type === 'box') h += `<div class="dz-sec"><div class="label">Look</div><div class="dz-grid">${field('fill', 'Fill', one.fill || '#e4e4e7', 'color')}${field('radius', 'Corners', one.radius || 0)}${field('stroke', 'Border', one.stroke || '#a1a1aa', 'color')}${field('sw', 'Width', one.sw || 0)}${field('opacity', 'Opacity %', Math.round((one.opacity ?? 1) * 100), 'number', 'wide')}</div></div>`;
     if (one?.type === 'text') h += `<div class="dz-sec"><div class="label">Type</div><div class="dz-grid"><label class="dz-f wide"><span>Font</span><select data-k="font">${[...new Set([one.font || 'DM Sans', ...FONTS])].map(f => `<option${(one.font || 'DM Sans') === f ? ' selected' : ''} style="font-family:'${esc(f)}'">${esc(f)}</option>`).join('')}</select></label>
@@ -2259,7 +2260,7 @@
   const styleHint = spots => { const f = byId(spots[0]?.onFrame); return [board.name, f?.name].filter(Boolean).join(', '); };
   function offerFill(spots, where = 'chat') {
     if (!spots.length) return;
-    if (MB.web) return say(`There ${spots.length === 1 ? 'is 1 image spot' : `are ${spots.length} image spots`} waiting for pictures. In the Mac app I can fill them with Higgsfield or draw them for you ✦`, 0, DL);
+    if (MB.web) return say(`There ${spots.length === 1 ? 'is 1 image spot' : `are ${spots.length} image spots`} waiting for pictures. In the desktop app I can fill them with Higgsfield or draw them for you ✦`, 0, DL);
     const n = spots.length, acts = [];
     if (settings.ai && settings.higgs) acts.push({ label: `Fill ${n} with Higgsfield ✦`, run: () => quoteFill(spots) });
     if (settings.ai) acts.push({ label: 'Draw simple illustrations (free)', ghost: !!(settings.ai && settings.higgs), run: () => drawFill(spots) });
@@ -2556,7 +2557,7 @@
     close(); return out || '<p></p>';
   }
   const docHTML = c => c.doc && window.MBEditor ? MBEditor.generateHTML(c.doc, MBEditor.extensions()) : mdToHTML(c.body);
-  // load any web fonts a doc uses, so it looks right on this Mac
+  // load any web fonts a doc uses, so it looks right on this computer
   function fontsIn(json) { const out = new Set(); (function walk(n) { (n?.marks || []).forEach(m => m.type === 'textStyle' && m.attrs?.fontFamily && out.add(fontName(m.attrs.fontFamily))); (n?.content || []).forEach(walk); })(json); return [...out]; }
 
   function ensureEditor() {
@@ -2633,7 +2634,7 @@
     return `<!doctype html><html><head><meta charset="utf-8"><title>${escH(title || 'Document')}</title>
 <link rel="stylesheet" href="__WEB__/fonts.css">${web.map(f => `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, '+')}:ital,wght@0,400;0,700;1,400&display=swap">`).join('')}
 <style>
-@page { size: ${size}; margin: 0.8in 0.85in 0.85in; }   /* browsers use these; the Mac app sets the same margins on its printer */
+@page { size: ${size}; margin: 0.8in 0.85in 0.85in; }   /* browsers use these; the desktop app sets the same margins when it prints */
 html, body { margin: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { padding: 0; }
 :root { --paper: #ffffff; --paper-ink: #2b2630; --paper-soft: #6b6370; }   /* downloads are always light pages */
@@ -2682,18 +2683,18 @@ ${proseCSS()}
     const tb = (c, label, tip, cls = '') => `<button type="button" class="dt-b ${cls}" data-c="${c}" title="${tip}" aria-label="${tip}">${label}</button>`;
     const pop = (p, label, tip, cls = '') => `<button type="button" class="dt-b dt-drop ${cls}" data-pop="${p}" title="${tip}" aria-label="${tip}" aria-haspopup="true">${label}</button>`;
     $('dvTools').innerHTML = [
-      tb('undo', DICON.undo, 'Undo · ⌘Z', 'dt-fold f7'), tb('redo', DICON.redo, 'Redo · ⇧⌘Z', 'dt-fold f8'), '<span class="dt-sep"></span>',
+      tb('undo', DICON.undo, 'Undo · Ctrl+Z', 'dt-fold f7'), tb('redo', DICON.redo, 'Redo · Ctrl+Shift+Z', 'dt-fold f8'), '<span class="dt-sep"></span>',
       pop('style', '<span class="dt-lbl" id="dtStyle">Body</span><i class="dt-car"></i>', 'Text style', 'dt-style'),
       pop('font', '<span class="dt-lbl" id="dtFont">DM Sans</span><i class="dt-car"></i>', 'Font', 'dt-font'),
       `<span class="dt-size" title="Text size"><button type="button" class="dt-b" data-c="smaller" aria-label="Smaller">−</button><input id="dtSize" inputmode="numeric" aria-label="Text size" value="16"><button type="button" class="dt-b" data-c="bigger" aria-label="Bigger">+</button></span>`,
       '<span class="dt-sep"></span>',
-      tb('bold', '<b>B</b>', 'Bold · ⌘B', 'dt-t'), tb('italic', '<i>I</i>', 'Italic · ⌘I', 'dt-t'), tb('underline', '<u>U</u>', 'Underline · ⌘U', 'dt-t'), tb('strike', '<s>S</s>', 'Strikethrough · ⇧⌘S', 'dt-t'),
+      tb('bold', '<b>B</b>', 'Bold · Ctrl+B', 'dt-t'), tb('italic', '<i>I</i>', 'Italic · Ctrl+I', 'dt-t'), tb('underline', '<u>U</u>', 'Underline · Ctrl+U', 'dt-t'), tb('strike', '<s>S</s>', 'Strikethrough · Ctrl+Shift+S', 'dt-t'),
       pop('color', '<span class="dt-a">A<i id="dtColorBar"></i></span>', 'Text color'), pop('hl', DICON.hl, 'Highlight', 'dt-hl'),
       '<span class="dt-sep"></span>',
       pop('align', `<span id="dtAlign">${DICON.left}</span>`, 'Alignment', 'dt-fold f6'),
       tb('bullet', DICON.bullet, 'Bulleted list', 'dt-fold f5'), tb('ordered', DICON.ordered, 'Numbered list', 'dt-fold f4'), tb('task', DICON.task, 'Checklist', 'dt-fold f3'),
       '<span class="dt-sep"></span>',
-      pop('link', DICON.link, 'Link · ⌘K', 'dt-fold f2'), tb('image', DICON.image, 'Add a picture', 'dt-fold f1'), pop('more', DICON.more, 'More: line spacing, tables, dividers…'),
+      pop('link', DICON.link, 'Link · Ctrl+K', 'dt-fold f2'), tb('image', DICON.image, 'Add a picture', 'dt-fold f1'), pop('more', DICON.more, 'More: line spacing, tables, dividers…'),
       `<button type="button" class="dt-mochi dt-round" data-pop="mochi" data-tip="Mochi" aria-label="Ask Mochi about your selection">${DICON.mochi}</button>`,
     ].join('');
     bubbleEl.innerHTML = [tb('bold', '<b>B</b>', 'Bold', 'dt-t'), tb('italic', '<i>I</i>', 'Italic', 'dt-t'), tb('underline', '<u>U</u>', 'Underline', 'dt-t'), tb('strike', '<s>S</s>', 'Strikethrough', 'dt-t'),
@@ -2774,7 +2775,7 @@ ${proseCSS()}
       const row = f => `<button type="button" class="dp-row dp-font ${f === cur ? 'on' : ''}" data-font="${escH(f)}" style="font-family:'${escH(f)}', ${DOC_FONT}, system-ui">${escH(f)}${onMac(f) ? '' : '<small>Google Fonts</small>'}</button>`;
       p.innerHTML = `<input class="dp-search" id="dpFontQ" placeholder="Search fonts…" autocomplete="off" spellcheck="false">
         <div class="dp-scroll" id="dpFontList">${onBoard.length ? `<div class="dp-h">Used on this board</div>${onBoard.map(row).join('')}` : ''}<div class="dp-h">Suggested</div>${SUGGESTED_FONTS.filter(f => !onBoard.includes(f)).map(row).join('')}
-        <div class="dp-h">On your Mac</div>${FONTS.filter(f => !SUGGESTED_FONTS.includes(f) && !onBoard.includes(f)).slice(0, 400).map(row).join('')}</div>`;
+        <div class="dp-h">On your computer</div>${FONTS.filter(f => !SUGGESTED_FONTS.includes(f) && !onBoard.includes(f)).slice(0, 400).map(row).join('')}</div>`;
       SUGGESTED_FONTS.concat(onBoard).forEach(useFont);
       const q = $('dpFontQ'); q.addEventListener('keydown', e => e.stopPropagation());
       q.addEventListener('input', () => { const v = q.value.trim().toLowerCase(); p.querySelectorAll('.dp-font').forEach(b => b.hidden = !!v && !b.dataset.font.toLowerCase().includes(v)); p.querySelectorAll('.dp-h').forEach(h => h.hidden = !!v); });
@@ -2878,7 +2879,7 @@ ${proseCSS()}
       const m = err.message || '';
       if (/Claude Code/.test(m)) say("I need Claude Code to rewrite things. It's a one-time setup with your Claude account.", 0, [{ label: 'Show me how to connect', run: () => MB.openURL(GUIDE) }]);
       else if (SIGNIN.test(m)) say("Claude Code is here, but it isn't signed in yet. Open Terminal, type claude, and sign in.", 0, [{ label: 'Show me how', run: () => MB.openURL(GUIDE) }]);
-      else say(MB.native ? "Hmm, I couldn't rewrite that: " + m : 'Mochi rewrites text with Claude in the Mac app ✦', 8000);
+      else say(MB.native ? "Hmm, I couldn't rewrite that: " + m : 'Mochi rewrites text with Claude in the desktop app ✦', 8000);
     } finally { $('docview').classList.remove('mochi-busy'); goo.think(false); $('dvSaved').textContent = ''; }
   }
 
@@ -2956,7 +2957,7 @@ ${proseCSS()}
     open: I('<path d="M11 3.5h5.5V9M16.5 3.5L9 11M14 12v3.5a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8"/>'),
     link: I('<path d="M8.5 11.5a3.2 3.2 0 0 0 4.5 0l2.6-2.6a3.2 3.2 0 0 0-4.5-4.5l-.9.9"/><path d="M11.5 8.5a3.2 3.2 0 0 0-4.5 0l-2.6 2.6a3.2 3.2 0 0 0 4.5 4.5l.9-.9"/>'),
   };
-  // fonts for board text: the same list as docs (fonts on this board first, then suggestions, then everything on this Mac)
+  // fonts for board text: the same list as docs (fonts on this board first, then suggestions, then everything on this computer)
   // every font this board uses: picked for notes and titles, wireframe text, font cards, and fonts set inside docs (most used first)
   function boardFonts() {
     const n = new Map(), add = f => { f = String(f || '').replace(/^["']|["']$/g, '').trim(); if (f && !/^(system-ui|sans-serif|serif|monospace|inherit|-apple-system)$/i.test(f)) n.set(f, (n.get(f) || 0) + 1); };
@@ -2974,7 +2975,7 @@ ${proseCSS()}
     p.innerHTML = `<input class="dp-search" placeholder="Search fonts…" autocomplete="off" spellcheck="false">
       <div class="dp-scroll"><button type="button" class="dp-row dp-font ${cur === '' ? 'on' : ''}" data-bfont="">Default font<small>Mochiboard’s own</small></button>
       ${onBoard.length ? `<div class="dp-h">Used on this board</div>${onBoard.map(row).join('')}` : ''}<div class="dp-h">Suggested</div>${SUGGESTED_FONTS.filter(f => !onBoard.includes(f)).map(row).join('')}
-      <div class="dp-h">On your Mac</div>${FONTS.filter(f => !SUGGESTED_FONTS.includes(f) && !onBoard.includes(f)).slice(0, 400).map(row).join('')}</div>`;
+      <div class="dp-h">On your computer</div>${FONTS.filter(f => !SUGGESTED_FONTS.includes(f) && !onBoard.includes(f)).slice(0, 400).map(row).join('')}</div>`;
     SUGGESTED_FONTS.concat(onBoard).forEach(useFont);
     const r = btn.getBoundingClientRect(); p.hidden = false; p.style.position = 'fixed'; p.style.width = '260px';
     p.style.left = Math.max(10, Math.min(innerWidth - 270, r.left + r.width / 2 - 130)) + 'px';
@@ -3027,7 +3028,7 @@ ${proseCSS()}
       h += `<span class="sb-sep"></span><button class="sb-txt sb-font" data-sbfont="1" title="Font"><span style="${fnt ? `font-family:'${esc(fnt)}', var(--font)` : ''}">${fnt === null ? 'Mixed fonts' : esc(fnt || 'Default font')}</span><svg viewBox="0 0 12 12" width="10" height="10"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
       h += `<span class="sb-sep"></span><div class="sb-sizes" title="Text size">${['s', 'm', 'l', 'xl'].map(z => `<button data-fs="${z}" class="${cur === z ? 'on' : ''}">${z.toUpperCase()}</button>`).join('')}</div>`; }
     const oneGroup = cs.length > 1 && cs.every(c => c.group && c.group === cs[0].group);
-    if (cs.length > 1) h += `<span class="sb-sep"></span><button class="sb-txt" data-sb="${oneGroup ? 'ungroup' : 'group'}" title="${oneGroup ? 'Ungroup · ⇧⌘G' : 'Group, so they move together · ⌘G'}">${oneGroup ? 'Ungroup' : 'Group'}</button>`;
+    if (cs.length > 1) h += `<span class="sb-sep"></span><button class="sb-txt" data-sb="${oneGroup ? 'ungroup' : 'group'}" title="${oneGroup ? 'Ungroup · Ctrl+Shift+G' : 'Group, so they move together · Ctrl+G'}">${oneGroup ? 'Ungroup' : 'Group'}</button>`;
     h += `<span class="sb-sep"></span>` + btn('mochi', 'mochi', 'Ask Mochi to change ' + (one ? 'this' : 'these')) + btn('del', 'del', 'Delete');
     bar.innerHTML = h;
   }
@@ -3216,7 +3217,7 @@ ${proseCSS()}
   world.appendChild($('guides')); setTimeout(placeTray, 0); renderDesign();
   // ---------- updates: check GitHub for a newer Mochiboard (about once a day), show what's new, update with one tap ----------
   let updInfo = null;
-  if (!MB.native) $('setUpdate').style.display = 'none';   // updating is a Mac app thing: the web version changes when the site does
+  if (!MB.native) $('setUpdate').style.display = 'none';   // updating is a desktop app thing: the web version changes when the site does
   async function checkUpdate(force) {
     if (!MB.native) return;
     let last = 0; try { last = +localStorage.getItem('mochiboard:updChecked') || 0; } catch (e) {}
@@ -3319,7 +3320,7 @@ ${proseCSS()}
   // the tour: Mochi points at each part; some steps you try for real and she notices
   const TOUR = [
     { el: '#tools', side: 'top', text: 'These are your tools: notes, docs, checklists, titles, collections, links, images, voice memos, colors, shapes, stamps and drawing. Pick one, then click the board to place it.', try: 'Try it: add a note (or double-click the board).', done: t => board.cards.length > t.cards },
-    { el: null, text: 'Got an idea mid-thought? Press ⌘K, type it, hit Enter. It goes to Unsorted so you never lose your place.', try: 'Try it: press ⌘K and jot something down.', done: t => board.tray.length > t.tray },
+    { el: null, text: 'Got an idea mid-thought? Press Ctrl+K, type it, hit Enter. It goes to Unsorted so you never lose your place.', try: 'Try it: press Ctrl+K and jot something down.', done: t => board.tray.length > t.tray },
     { el: '#tray', side: 'left', text: 'Unsorted holds your quick ideas. Drag one onto the board when it finds a home, or ask me to sort them all.' },
     { el: '#side .box', side: 'right', text: 'Your boards live here. Group them into projects and folders. Right-click anything to rename, move, duplicate or delete it.' },
     { el: '#design', side: 'left', text: 'Wireframes: screens, boxes, text, icons, and ready-made pieces, from nav bars to whole website sections. Things snap into line as you move them.' },
@@ -3374,13 +3375,13 @@ ${proseCSS()}
     ['<path d="M13.5 3.5l3 3L8 15l-4 1 1-4z"/><path d="M3 18.5h14" stroke-width="1.2"/>', 'Any pen size', 'A slider for every thickness, and [ and ] while you draw. Stamps are all pixel art now too.'],
     ['<path d="M11 2.5L4.5 11h5l-1 6.5L15.5 9h-5z"/>', 'Smoother', 'Dragging and zooming glide on big boards, and the dots stay the same size as you zoom.'],
   ], '1.3.0': [
-    ['<path d="M5.5 2.5h6l4 4v11h-10z"/><path d="M11.5 2.5v4h4"/><path d="M8 10h5M8 13h5"/>', 'Real docs', 'Styles, any font on your Mac, colors and highlights, lists, tables and pictures. Open any doc to try it.'],
+    ['<path d="M5.5 2.5h6l4 4v11h-10z"/><path d="M11.5 2.5v4h4"/><path d="M8 10h5M8 13h5"/>', 'Real docs', 'Styles, any font on your computer, colors and highlights, lists, tables and pictures. Open any doc to try it.'],
     ['<path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6z"/><path d="M15.5 13.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z"/>', 'Mochi edits with you', 'Select words in a doc and ask me to make them shorter, clearer, friendlier, or anything you type.'],
     ['<path d="M10 3v9.5M6 8.5l4 4 4-4"/><path d="M4 16.5h12"/>', 'PDF and Word', 'Download any doc as a PDF or a Word file, on Letter or A4 pages. Headings, lists and tables come along.'],
     ['<path d="M7.5 4.5h5a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-5a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3z"/><path d="M8 10.5l1.5 1.5L12.5 9"/>', 'Easier to set up', 'I find Claude Code wherever it lives, and a step-by-step guide shows up if I can\u2019t think yet.'],
  ], '1.4.0': [
     ['<rect x="2.5" y="5.5" width="10.5" height="9" rx="2.2"/><path d="M13 9l4.5-2.6v7.2L13 11"/>', 'Video cards', 'Press V to record yourself, wide or phone-shaped, or drop in a video. It plays right on the board.'],
-    ['<path d="M3.5 15.5L8 4.5l4.5 11M5.2 11.5h5.6"/><path d="M13.5 10.5h4M15.5 8.5v6"/>', 'Your fonts', 'Any font on your Mac for notes, titles and checklists, with a live preview as you hover.'],
+    ['<path d="M3.5 15.5L8 4.5l4.5 11M5.2 11.5h5.6"/><path d="M13.5 10.5h4M15.5 8.5v6"/>', 'Your fonts', 'Any font on your computer for notes, titles and checklists, with a live preview as you hover.'],
     ['<path d="M5 6.2c-.1 0-.2 0-.3-.1C4 5.5 3 4.8 3 3.9c0-.6.4-1 1-1 .4 0 .8.2 1 .5.2-.3.6-.5 1-.5.6 0 1 .4 1 1 0 .9-1 1.6-1.7 2.2-.1.1-.2.1-.3.1z" fill="currentColor" stroke="none"/><circle cx="10" cy="4.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="4.5" r="1" fill="currentColor" stroke="none"/><circle cx="5" cy="10" r="1" fill="currentColor" stroke="none"/><path d="M15 12.6c-.1 0-.2 0-.3-.1-.7-.6-1.7-1.3-1.7-2.2 0-.6.4-1 1-1 .4 0 .8.2 1 .5.2-.3.6-.5 1-.5.6 0 1 .4 1 1 0 .9-1 1.6-1.7 2.2-.1.1-.2.1-.3.1z" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="5" cy="15.5" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="15.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="15.5" r="1" fill="currentColor" stroke="none"/>', 'Grid shapes', 'Dots, crosses, hearts, sparkles and more behind your cards. Settings → Board.'],
     ['<path d="M3.5 6h13M3.5 10h13M3.5 14h13"/><circle cx="7" cy="6" r="1.6" fill="currentColor"/><circle cx="13" cy="10" r="1.6" fill="currentColor"/><circle cx="9" cy="14" r="1.6" fill="currentColor"/>', 'Your toolbar', 'Right-click the toolbar to hide tools you don\u2019t use and drag the rest into your own order.'],
     ['<rect x="7.5" y="2.5" width="5" height="9.5" rx="2.5"/><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v2.5"/>', 'Memos wait for you', 'Drop a voice memo and press Start recording when you\u2019re ready. Nothing records by surprise.'],
@@ -3516,7 +3517,7 @@ ${proseCSS()}
     applySettings(); phone.init();
     let onboarded = true; try { onboarded = !!localStorage.getItem('mochiboard:onboarded'); } catch (e) {}
     if (!onboarded) { try { localStorage.setItem(newsKey, (await MB.version().catch(() => null)) || Object.keys(NEWS).pop()); } catch (e) {} setTimeout(() => { fit(board.cards); openSetup(); }, 400); showConnections(true); return; }   // brand new: the tour covers it, no what's new
-    setTimeout(() => { fit(board.cards); if (settings.greet && settings.chat !== 'quiet') say(`Hi${settings.name ? ' ' + settings.name : ''}, it's Mochi! Dump ideas with ⌘K, then ask me to sort them ✦`, 7000); }, 400);
+    setTimeout(() => { fit(board.cards); if (settings.greet && settings.chat !== 'quiet') say(`Hi${settings.name ? ' ' + settings.name : ''}, it's Mochi! Dump ideas with Ctrl+K, then ask me to sort them ✦`, 7000); }, 400);
     showConnections(true);
     setTimeout(maybeNews, 700);
     setTimeout(() => checkUpdate(), 4000);
