@@ -11,7 +11,7 @@ jobs:
       - name: Install packages
         run: |
           pacman -Syu --noconfirm --needed git nodejs npm electron xorg-server-xvfb fontconfig ttf-dejavu nss alsa-lib gtk3 libxss libxtst at-spi2-core libdrm mesa
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Shell syntax
         run: bash -n install.sh && bash -n uninstall.sh && bash -n make-release.sh
       - name: JavaScript syntax
@@ -32,7 +32,7 @@ jobs:
           test ! -e /home/tester/.local/bin/mochiboard
       - name: Build the AppImage
         run: npx electron-builder --linux AppImage --x64 --publish never
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: Mochiboard-x86_64.AppImage
           path: build/release/*.AppImage
