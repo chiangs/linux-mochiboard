@@ -130,9 +130,34 @@ Like on the Mac, Mochiboard has no title bar: the board fills the window. The th
 
 ## Follow your Caelestia theme
 
-If you use the [Caelestia](https://github.com/caelestia-dots/shell) Hyprland shell, **Settings → General → Follow Caelestia** gives Mochiboard your desktop's colors: the board background, grid dots, panels and accent (buttons, selection, highlights), plus light or dark mode. Change your wallpaper or scheme and Mochiboard restyles within a second. Your own colors and theme come back when you switch it off.
+If you use the [Caelestia](https://github.com/caelestia-dots/shell) Hyprland shell, Mochiboard can take on your desktop's colors and change with them.
 
-It reads `~/.local/state/caelestia/scheme.json` (no setup needed), and the switch only appears when that file exists. Card colors (your notes' butter, mint, lilac…) are part of your boards and stay as they are. Text and a few small details (the cursor, switches) keep Mochiboard's own colors.
+**Turn it on:** Settings (⚙) → General → under *Look*, **Follow Caelestia**. It's off until you switch it on, and it only shows up when Caelestia is installed. While it's on, the Theme buttons and Settings → Board → Colors are dimmed, because Caelestia decides them. Switch it off and your own colors and theme come back.
+
+**What changes:**
+
+| In Mochiboard | Comes from Caelestia's |
+|---|---|
+| Board background | `surface` |
+| Grid dots | `outlineVariant` |
+| Panels (sidebar, tray, toolbar, menus) | `surfaceContainer` |
+| Accent (buttons, selection, highlights) | `primary` |
+| Light or dark | the scheme's mode |
+
+Card colors (your notes' butter, mint, lilac…) are part of your boards and stay as they are. Text greys, the cursor, switches and Mochi keep Mochiboard's own colors.
+
+**Which Caelestia actions restyle it** (within about a second, no restart):
+
+| Caelestia | Mochiboard |
+|---|---|
+| **Scheme** | New colors |
+| **Variant** | New shades of the same scheme |
+| **Light / Dark** | Switches mode too (the easiest way to see it working) |
+| **Wallpaper / Random** | New colors only with the **dynamic** scheme (colors from the wallpaper). A named scheme like gruvbox or catppuccin keeps its colors whatever the wallpaper. |
+
+Changing between two *dark* schemes mostly shows in the accent, panels and dots, since most dark backgrounds are close to black. A board with its own background (right-click a board → background) keeps it; the rest still follows.
+
+Mochiboard reads `~/.local/state/caelestia/scheme.json`, the file Caelestia's shell and `caelestia scheme set` keep up to date, so there's nothing to set up.
 
 ## Differences from the Mac app
 
@@ -158,6 +183,7 @@ The canvas and Mochi are the same; these are the places Linux works differently:
 - **Force Wayland or X11.** The launcher passes `--ozone-platform-hint=auto` (Wayland when available). Add `--ozone-platform=wayland` or `--ozone-platform=x11` to the flags file to choose.
 - **Camera or microphone not found.** Mochiboard uses the same camera and microphone as your browser (PipeWire). Check `pavucontrol` or your sound settings, and that nothing else holds the camera.
 - **Mochi says she needs Claude Code** even though it's installed: run `which claude` in a terminal and make sure that folder is one of the places listed above, or symlink it into `~/.local/bin`.
+- **Follow Caelestia doesn't change anything.** Check that the switch is on (Settings → General → Follow Caelestia), then switch Caelestia to Light: the board should turn light within a second. If it doesn't, press F12 in Mochiboard and run `MB.caelestia().then(s => console.log(s && s.name, s && s.mode, '|', document.body.className))` in the Console. You should see your scheme's name and `following-caelestia`; if the name is missing, check that `~/.local/state/caelestia/scheme.json` exists.
 - **Developer tools:** F12 or Ctrl+Shift+I.
 
 ## How it's built

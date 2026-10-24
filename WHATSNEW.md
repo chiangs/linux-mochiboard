@@ -8,7 +8,7 @@ Write them for people, not for code: one line, what changed and why it's nice.
 - Mochiboard runs on Linux now, on Wayland or X11, with Mochi thinking through Claude Code on your computer.
 - Install from the code with ./install.sh (and take it off again with ./uninstall.sh), or grab the AppImage.
 - Voice memos are written out on your computer with whisper.cpp, if you have it.
-- Using Caelestia? Settings → General → Follow Caelestia gives Mochiboard your desktop's colors and light or dark mode, and changes with your wallpaper.
+- Using Caelestia? Switch on Settings → General → Follow Caelestia and Mochiboard takes your desktop's colors and light or dark mode, and changes along with your scheme, variant, light/dark and (with the dynamic scheme) your wallpaper.
 - Ctrl + scroll zooms in small, even steps (no more jumping from 90% to 300%), and clicking the zoom percentage or pressing Ctrl+0 takes you back to 100%.
 - Mochi's requests no longer set off your own Claude Code hooks (so the desktop Mochi stays quiet while Mochiboard's Mochi thinks). Settings → Helpers can turn them back on.
 
