@@ -115,6 +115,8 @@ The first memo downloads the speech model (about 140 MB, once) into `~/.local/sh
 | **M** | Ask Mochi |
 | **F** | Focus on the selection |
 | **0** | Fit the whole board |
+| **Ctrl + scroll** | Zoom in even steps (…90 · 100 · 110 · 125…%). A touchpad pinch zooms smoothly |
+| **Ctrl+0**, or click the zoom % | Back to 100% |
 | **Ctrl+Z / Ctrl+Shift+Z** | Undo / redo |
 | **Ctrl+G / Ctrl+Shift+G** | Group / ungroup, so things move together |
 | **Ctrl+C / Ctrl+X / Ctrl+V** | Copy, cut and paste cards, even onto another board |

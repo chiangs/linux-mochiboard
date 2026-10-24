@@ -8,6 +8,7 @@ Write them for people, not for code: one line, what changed and why it's nice.
 - Mochiboard runs on Linux now, on Wayland or X11, with Mochi thinking through Claude Code on your computer.
 - Install from the code with ./install.sh (and take it off again with ./uninstall.sh), or grab the AppImage.
 - Voice memos are written out on your computer with whisper.cpp, if you have it.
+- Ctrl + scroll zooms in small, even steps (no more jumping from 90% to 300%), and clicking the zoom percentage or pressing Ctrl+0 takes you back to 100%.
 - Mochi's requests no longer set off your own Claude Code hooks (so the desktop Mochi stays quiet while Mochiboard's Mochi thinks). Settings → Helpers can turn them back on.
 
 ## October 2026 · 1.4.1 (Mac)

@@ -20,6 +20,7 @@ linux/          the host: an Electron main process
   update.js       updates for git installs and the AppImage
   paths.js        where things are kept (XDG folders)
 tests/smoke.js  opens the real app and checks every bridge operation
+tests/zoom.js   Ctrl + wheel steps, touchpad pinch, reset to 100%
 install.sh  uninstall.sh  make-release.sh  packaging/
 ```
 

@@ -493,6 +493,17 @@
     const r = stage.getBoundingClientRect(), p = toWorld(cx, cy); view.z = clamp(z, .15, 3);
     view.x = cx - r.left - p.x * view.z; view.y = cy - r.top - p.y * view.z; applyView();
   }
+  // Ctrl + mouse wheel moves one step along these, so every notch is the same size and 100% is always one of them
+  const ZOOM_STEPS = [.15, .2, .25, .33, .5, .67, .75, .9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+  function stepZoom(cx, cy, dir) {
+    const z = view.z, next = dir > 0 ? ZOOM_STEPS.find(s => s > z + .001) : [...ZOOM_STEPS].reverse().find(s => s < z - .001);
+    if (next) zoomAt(cx, cy, next);
+  }
+  // back to 100% around the middle of the screen (the zoom percentage in the toolbar, or Ctrl+0)
+  function resetZoom() {
+    const r = stage.getBoundingClientRect();
+    world.style.transition = 'transform .3s cubic-bezier(.2,.8,.3,1)'; zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1); setTimeout(() => world.style.transition = '', 320);
+  }
   function fit(cards, pad = 120, maxZ = 1.4) {
     if (!cards.length) return; const r = stage.getBoundingClientRect();
     const x0 = Math.min(...cards.map(c => c.x)), y0 = Math.min(...cards.map(c => c.y)), x1 = Math.max(...cards.map(c => c.x + c.w)), y1 = Math.max(...cards.map(c => c.y + c.h));
@@ -1081,9 +1092,22 @@
   // trackpad: two fingers pan, pinch (or ctrl + scroll) zooms
   stage.addEventListener('wheel', e => {
     if (e.target.closest('.tray, .m-bubble, .cpop, .home, .m-chat, .design, .side, .row-menu, .stamp-pick, .wheel-stamps, .docview, .settings, .shapepick, .tplpick')) return; e.preventDefault();
-    if (e.ctrlKey || e.metaKey) zoomAt(e.clientX, e.clientY, view.z * Math.exp(-e.deltaY * .01));
+    if (e.ctrlKey || e.metaKey) {
+      // a touchpad pinch also arrives as a ctrl + wheel event, but without Ctrl actually held: that one stays smooth (at most 5% per event)
+      if (!ctrlHeld) return zoomAt(e.clientX, e.clientY, view.z * Math.exp(clamp(-e.deltaY * .01, -.05, .05)));
+      // Ctrl + wheel: one step per notch. A notch is one big event, or (high-resolution wheels, two-finger scroll) small ones adding up to 40px
+      const d = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY;
+      if (Math.sign(d) !== Math.sign(wheelSum) || performance.now() - wheelAt > 250) wheelSum = 0;
+      wheelSum += d; wheelAt = performance.now();
+      if (Math.abs(wheelSum) >= 40) { stepZoom(e.clientX, e.clientY, wheelSum < 0 ? 1 : -1); wheelSum = 0; }
+    }
     else { view.x -= e.deltaX; view.y -= e.deltaY; applyView(); }
   }, { passive: false });
+  let ctrlHeld = false, wheelSum = 0, wheelAt = 0;
+  addEventListener('keydown', e => { if (e.key === 'Control' || e.key === 'Meta') ctrlHeld = true; }, true);
+  addEventListener('keyup', e => { if (e.key === 'Control' || e.key === 'Meta') ctrlHeld = false; }, true);
+  addEventListener('blur', () => { ctrlHeld = false; });
+  $('zoom').onclick = resetZoom;
 
   // ---------- the tray: drag ideas out onto the board ----------
   $('tray').querySelector('.tray-head').onclick = () => $('tray').classList.toggle('closed');
@@ -1191,6 +1215,7 @@
     if ((e.key === 'Backspace' || e.key === 'Delete') && sel.size) removeSelected();
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g' && sel.size) { e.preventDefault(); groupSel(!e.shiftKey); return; }
     if ((e.metaKey || e.ctrlKey) && ['b', 'i', 'u'].includes(e.key.toLowerCase()) && sel.size) { e.preventDefault(); $('selbar').querySelector(`[data-ts="${{ b: 'bold', i: 'italic', u: 'under' }[e.key.toLowerCase()]}"]`)?.click(); return; }
+    if ((e.metaKey || e.ctrlKey) && e.key === '0' && !homeAt) { e.preventDefault(); resetZoom(); return; }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); selectOnly(board.cards.map(c => c.id)); }
     if ((e.metaKey || e.ctrlKey) && ['c', 'x'].includes(e.key.toLowerCase()) && sel.size && !homeAt) { const r = copyCards(); if (r) { navigator.clipboard?.writeText(r.text).catch(() => {}); if (e.key.toLowerCase() === 'x') { e.preventDefault(); removeSelected(); } } return; }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v' && !homeAt) { pendingPaste = true; setTimeout(() => { if (pendingPaste && lastClip) pasteCards(); pendingPaste = false; }, 150); return; }
