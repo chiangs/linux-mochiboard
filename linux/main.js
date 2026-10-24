@@ -4,7 +4,7 @@
 const fs = require('fs'), path = require('path'), { execFile } = require('child_process');
 const { app, BrowserWindow, ipcMain, shell, protocol, Menu, session } = require('electron');
 const P = require('./paths'), storage = require('./storage'), claude = require('./claude'), net = require('./net');
-const output = require('./output'), speech = require('./speech'), update = require('./update');
+const output = require('./output'), speech = require('./speech'), update = require('./update'), theme = require('./theme');
 
 app.setName('Mochiboard');
 if (process.platform === 'linux') app.setDesktopName('mochiboard.desktop');
@@ -55,7 +55,7 @@ const reply = (wc, id, ok, value) => { if (!wc.isDestroyed()) wc.send('mb-reply'
 const OPS = {
   list: () => storage.list(), load: a => storage.load(a.id), save: a => storage.save(a.board), remove: a => storage.remove(a.id),
   folders: () => storage.folders(), saveFolders: a => storage.saveFolders(a.folders),
-  prefs: a => claude.setPrefs(a),
+  prefs: a => claude.setPrefs(a), caelestia: () => theme.read(),
   usage: () => claude.usageSummary(), resetUsage: () => claude.resetUsage(), version: () => update.appVersion(),
   linkPreview: a => net.linkPreview(a.url || ''),
   fetchImage: async a => { const d = await net.fetchImage(a.url || ''); if (!d) throw new Error("couldn't load that image"); return d; },
@@ -104,6 +104,7 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(allowed.has(perm)));
   session.defaultSession.setPermissionCheckHandler((wc, perm) => allowed.has(perm));
   createWindow();
+  theme.watch(s => win && !win.isDestroyed() && win.webContents.send('mb-event', 'caelestia', s));
   storage.watchBoards(() => win && win.webContents.executeJavaScript('window.__boardsChanged && __boardsChanged()').catch(() => {}));
 });
 app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });

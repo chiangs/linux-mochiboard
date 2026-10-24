@@ -128,6 +128,12 @@ The first memo downloads the speech model (about 140 MB, once) into `~/.local/sh
 
 Like on the Mac, Mochiboard has no title bar: the board fills the window. The three dots at the top left close, minimize and maximize it, and the strip next to them drags it. Resize from any edge. On tiling compositors (Hyprland, Sway, niri) the compositor places it like any other window, and you can hide the dots in Settings → General → Window buttons.
 
+## Follow your Caelestia theme
+
+If you use the [Caelestia](https://github.com/caelestia-dots/shell) Hyprland shell, **Settings → General → Follow Caelestia** gives Mochiboard your desktop's colors: the board background, grid dots, panels and accent (buttons, selection, highlights), plus light or dark mode. Change your wallpaper or scheme and Mochiboard restyles within a second. Your own colors and theme come back when you switch it off.
+
+It reads `~/.local/state/caelestia/scheme.json` (no setup needed), and the switch only appears when that file exists. Card colors (your notes' butter, mint, lilac…) are part of your boards and stay as they are. Text and a few small details (the cursor, switches) keep Mochiboard's own colors.
+
 ## Differences from the Mac app
 
 The canvas and Mochi are the same; these are the places Linux works differently:

@@ -10,7 +10,7 @@
   "desktopName": "mochiboard.desktop",
   "scripts": {
     "start": "electron . --ozone-platform-hint=auto",
-    "test": "node tests/smoke.js && node tests/zoom.js",
+    "test": "node tests/smoke.js && node tests/zoom.js && node tests/theme.js",
     "dist": "electron-builder --linux AppImage"
   },
   "devDependencies": {

@@ -1341,12 +1341,13 @@
   // ---------- settings: Mochi's color and greeting, her helpers, how the board looks ----------
   const MOCHI_COLORS = { blue: { B: '#33c7ff', S: '#ccf5ff', D: '#1480db' }, pink: { B: '#ff8fc2', S: '#ffe0ee', D: '#e0559a' }, mint: { B: '#5fdba0', S: '#d9fbe9', D: '#2fae73' },
     lilac: { B: '#b49bff', S: '#ece5ff', D: '#7e5ee6' }, butter: { B: '#ffd54f', S: '#fff4c4', D: '#e0a800' }, peach: { B: '#ffa978', S: '#ffe6d6', D: '#e57841' }, night: { B: '#4a4f7a', S: '#8d93c9', D: '#2b2e4f' } };
-  const settings = Object.assign({ mochi: 'blue', winButtons: true, claudeHooks: false, greet: true, grid: true, tilt: true, motion: true, keys: true, theme: 'system', chat: 'normal', emoji: true, noteColor: 'random', snap: false, ai: true, mobbin: true, higgs: true, chatKeep: 'board', chatMax: '60', cursor: '#ff9ec4', fancyCursor: true, colors: { light: {}, dark: {} } }, (() => { try { return JSON.parse(localStorage.getItem('mochiboard:settings') || '{}'); } catch (e) { return {}; } })());
+  const settings = Object.assign({ mochi: 'blue', winButtons: true, claudeHooks: false, caelestia: false, greet: true, grid: true, tilt: true, motion: true, keys: true, theme: 'system', chat: 'normal', emoji: true, noteColor: 'random', snap: false, ai: true, mobbin: true, higgs: true, chatKeep: 'board', chatMax: '60', cursor: '#ff9ec4', fancyCursor: true, colors: { light: {}, dark: {} } }, (() => { try { return JSON.parse(localStorage.getItem('mochiboard:settings') || '{}'); } catch (e) { return {}; } })());
   try { if (localStorage.getItem('mochiboard:keys') === 'hide') settings.keys = false; } catch (e) {}
   function applySettings() {
     queueMicrotask(() => applyColors()); queueMicrotask(() => applyGridShape()); queueMicrotask(() => applyToolbar());
     goos.forEach(g => g.setColors(MOCHI_COLORS[settings.mochi] || MOCHI_COLORS.blue));
-    const dark = settings.theme === 'dark' || (settings.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    const dark = following() ? cae.mode === 'dark' : settings.theme === 'dark' || (settings.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.body.classList.toggle('has-caelestia', !!cae); document.body.classList.toggle('following-caelestia', following());
     document.body.classList.toggle('dark', dark); document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
     document.querySelectorAll('[data-seg]').forEach(g => g.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('on', settings[g.dataset.seg] === b.dataset.v)));
     $('obNotes').innerHTML = $('noteColors').innerHTML = `<button data-nc="random" class="rand ${settings.noteColor === 'random' ? 'on' : ''}" title="A random pastel"></button>` + COLOR_NAMES.map(n => `<button data-nc="${n}" title="${n}" style="background:${COLORS[n]}" class="${settings.noteColor === n ? 'on' : ''}"></button>`).join('');
@@ -1393,7 +1394,11 @@
   const lum = hex => { const [r, g, b] = [1, 3, 5].map(i => { const c = parseInt(hex.slice(i, i + 2), 16) / 255; return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); }); return .2126 * r + .7152 * g + .0722 * b; };
   const mixHex = (a, b, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - k) + parseInt(b.slice(i, i + 2), 16) * k).toString(16).padStart(2, '0')).join('');
   const modeName = () => document.body.classList.contains('dark') ? 'dark' : 'light';
-  const myColors = () => { settings.colors = settings.colors || { light: {}, dark: {} }; return settings.colors[modeName()] = settings.colors[modeName()] || {}; };
+  // Settings → General → Follow Caelestia: the desktop's Material You scheme (from the host, live) stands in for your own colors
+  let cae = null;
+  const following = () => !!(settings.caelestia && cae);
+  const caeColors = () => ({ bg: cae.colours.surface, dot: cae.colours.outlineVariant || cae.colours.outline, panel: cae.colours.surfaceContainer || cae.colours.surface, accent: cae.colours.primary });
+  const myColors = () => { if (following()) return caeColors(); settings.colors = settings.colors || { light: {}, dark: {} }; return settings.colors[modeName()] = settings.colors[modeName()] || {}; };
   const colorOf = k => (k === 'bg' && board && board.bg) || myColors()[k] || COLOR_DEFAULTS[modeName()][k];
   function applyColors() {
     const B = document.body.style, mine = myColors(), bg = colorOf('bg'), darkBg = lum(bg) < .2;
@@ -1446,6 +1451,8 @@
     if (g.dataset.seg === 'chatKeep' && b.dataset.v !== 'board') clearSavedChats(); if (g.dataset.seg === 'chatKeep') renderChat(); });
   $('obNotes').onclick = $('noteColors').onclick = e => { const b = e.target.closest('[data-nc]'); if (b) { settings.noteColor = b.dataset.nc; applySettings(); } };
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => settings.theme === 'system' && applySettings());
+  window.__mbEvent = (name, data) => { if (name === 'caelestia') { cae = data; applySettings(); } };   // a new wallpaper or scheme: restyle right away
+  if (MB.caelestia) MB.caelestia().then(d => { cae = d; if (d) applySettings(); }).catch(() => {});
   const newNoteColor = () => settings.noteColor === 'random' ? COLOR_NAMES[1 + Math.floor(Math.random() * 6)] : settings.noteColor;
   const snapTo = v => settings.snap ? Math.round(v / 26) * 26 : v;
   $('revealBoards').onclick = () => MB.reveal();

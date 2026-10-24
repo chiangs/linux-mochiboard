@@ -35,6 +35,9 @@ contextBridge.exposeInMainWorld('webkit', {
 // answers come back over IPC (structured data, nothing turned into script) and are handed to the page's __mbReply
 ipcRenderer.on('mb-reply', (e, id, ok, value) => contextBridge.executeInMainWorld({ func: (i, o, v) => window.__mbReply && window.__mbReply(i, o, v), args: [id, ok, value] }));
 
+// news from the host that nobody asked for (Caelestia's colours changed) goes to the page's __mbEvent(name, data)
+ipcRenderer.on('mb-event', (e, name, data) => contextBridge.executeInMainWorld({ func: (n, d) => window.__mbEvent && window.__mbEvent(n, d), args: [name, data] }));
+
 // the window buttons the page draws (the window has no title bar of its own)
 contextBridge.exposeInMainWorld('mbWindow', {
   minimize: () => ipcRenderer.send('win', 'minimize'),

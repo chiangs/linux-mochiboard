@@ -19,14 +19,16 @@ linux/          the host: an Electron main process
   speech.js       voice memo transcription (whisper.cpp)
   update.js       updates for git installs and the AppImage
   paths.js        where things are kept (XDG folders)
+  theme.js        reads and watches Caelestia's colour scheme (Follow Caelestia)
 tests/smoke.js  opens the real app and checks every bridge operation
 tests/zoom.js   Ctrl + wheel steps, touchpad pinch, reset to 100%
+tests/theme.js  Follow Caelestia: offered only with Caelestia, live restyle, back to your colors
 install.sh  uninstall.sh  make-release.sh  packaging/
 ```
 
 ## How the canvas talks to the host
 
-`web/bridge.js` sends `{id, op, args}` through `window.webkit.messageHandlers.mb.postMessage`. In the app, `linux/preload.js` passes it to `linux/main.js`, which looks the op up in `OPS`. The answer goes back over IPC (`mb-reply`), and preload.js hands it to the page's `__mbReply(id, ok, value)`. Nothing is turned into script, so big boards and pictures pass through quickly. In a plain browser, bridge.js uses localStorage and a pretend Mochi instead.
+`web/bridge.js` sends `{id, op, args}` through `window.webkit.messageHandlers.mb.postMessage`. In the app, `linux/preload.js` passes it to `linux/main.js`, which looks the op up in `OPS`. The answer goes back over IPC (`mb-reply`), and preload.js hands it to the page's `__mbReply(id, ok, value)`. Nothing is turned into script, so big boards and pictures pass through quickly. News the page didn't ask for (Caelestia's colours changed) arrives the same way as `__mbEvent(name, data)`. In a plain browser, bridge.js uses localStorage and a pretend Mochi instead.
 
 **To add a new ability that needs the computer** (a file, a program, the network):
 1. Add the op to `OPS` in `linux/main.js` (put real work in a module next to it).
