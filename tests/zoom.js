@@ -1,4 +1,5 @@
-// Zoom: Ctrl + mouse wheel moves one even step per notch, a touchpad pinch stays smooth, and the percentage (or Ctrl+0) resets to 100%.
+// Zoom: Ctrl + mouse wheel moves one even step per notch, a touchpad pinch stays smooth, Ctrl+0 resets to 100%,
+// and the percentage opens the zoom menu (in, out, 100%, fit, quick sizes) with Ctrl shortcuts.
 //   xvfb-run -a node tests/zoom.js
 const { _electron: electron } = require('playwright');
 const fs = require('fs'), os = require('os'), path = require('path');
@@ -28,13 +29,17 @@ const fs = require('fs'), os = require('os'), path = require('path');
   // a big pinch flick can't jump: at most 5% per event (113% × e^0.05 ≈ 119%)
   await page.evaluate(() => { const s = document.querySelector('.stage') || document.getElementById('stage'); s.dispatchEvent(new WheelEvent('wheel', { deltaY: -300, ctrlKey: true, clientX: 700, clientY: 400, bubbles: true, cancelable: true })); });
   await page.waitForTimeout(300); r.flick = await pct();
-  // clicking the percentage resets
-  await page.click('#zoom'); await page.waitForTimeout(500); r.click = await pct();
+  // the percentage opens the zoom menu; "Zoom to 100%" goes back
+  await page.click('#zoom'); await page.waitForTimeout(300);
+  r.menu = await page.evaluate(() => [...document.querySelectorAll('#rowMenu button')].map(b => b.textContent.replace(/\s+/g, ' ').trim()));
+  await page.locator('#rowMenu button', { hasText: 'Zoom to 100%' }).click(); await page.waitForTimeout(500); r.click = await pct();
+  // Ctrl + = steps along the same ladder as the wheel
+  await page.keyboard.press('Control+='); await page.waitForTimeout(500); r.plus = await pct();
   r.steps = steps; r.errors = errors;
   await page.screenshot({ path: path.join(data, 'zoom.png'), clip: { x: 250, y: 800, width: 900, height: 100 } });
   console.log(JSON.stringify(r), '\n  toolbar:', path.join(data, 'zoom.png'));
   await app.close();
   const ok = r.reset === '100%' && JSON.stringify(steps) === JSON.stringify(['110%', '125%', '150%', '125%', '110%', '100%', '90%'])
-    && r.hires === '110%' && r.pinch === '113%' && r.flick === '119%' && r.click === '100%' && !errors.length;
+    && r.hires === '110%' && r.pinch === '113%' && r.flick === '119%' && r.click === '100%' && r.plus === '110%' && r.menu.includes('Zoom in Ctrl++') && r.menu.includes('Zoom to 100% Ctrl+0') && !r.menu.join().includes('⌘') && !errors.length;
   console.log(ok ? 'ZOOM OK' : 'ZOOM FAILED'); process.exit(ok ? 0 : 1);
 })().catch(e => { console.error(e); process.exit(1); });

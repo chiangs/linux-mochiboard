@@ -1,7 +1,7 @@
 {
   "name": "mochiboard",
   "productName": "Mochiboard",
-  "version": "1.4.1",
+  "version": "1.7.3",
   "description": "A cozy planning canvas with Mochi inside, for Linux",
   "homepage": "https://github.com/chiangs/linux-mochiboard",
   "license": "MIT",

@@ -3,6 +3,20 @@
 Each update gets a short line here. Mochiboard shows the new ones in Settings when an update is ready.
 Write them for people, not for code: one line, what changed and why it's nice.
 
+## October 2026 · 1.7.3 for Linux
+
+- The Pen: draw any shape with points and curves, then double-click it to pull points, round the corners you pick, or smooth a corner.
+- Strokes on boxes, screens and shapes: solid, dashed or dotted, with your own dash and gap. No fill leaves a clean outline.
+- Squiggly lines: wavy, zigzag or loopy, with a hand-drawn wobble if you like.
+- Text, your way: any size, line height, letter spacing, alignment and UPPER/lower/Title Case. Titles wrap, notes grow as you type.
+- Line things up with alignment guides, align and space-evenly buttons, and rotate or scale several things at once. Groups line up as one piece.
+- Bring to front and send to back work on everything (right-click, or Ctrl+] / Ctrl+[ with Shift for all the way), and hovering no longer pops cards up.
+- Make the sidebars yours: drag widgets by their title to either side, switch them on and off in Settings → Widgets, and drag panels to any height. Settings → Toolbar picks the icon size.
+- Text stays sharp at any zoom, and pinching and panning are smoother. Hold Alt while you drag to make a copy.
+- The zoom % opens a zoom menu (in, out, 100%, fit, quick sizes); Ctrl + / Ctrl − / Ctrl+0 / Shift+1 do the same. Ctrl + scroll still zooms in even steps.
+- New tool shortcuts: V selects, Shift+V makes a video, Shift+P is the Pen.
+- These come from Mochiboard 1.5 to 1.7.3 by Jessa Wolfe.
+
 ## October 2026 · 1.4.1 for Linux
 
 - Mochiboard runs on Linux now, on Wayland or X11, with Mochi thinking through Claude Code on your computer.

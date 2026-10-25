@@ -109,14 +109,20 @@ The first memo downloads the speech model (about 140 MB, once) into `~/.local/sh
 | **Ctrl+K** | Quick capture into Unsorted |
 | **double-click** | New note |
 | **N · C · T · D · G** | Note, checklist, title, doc, collection |
-| **L · I · A · V** | Link, image, voice memo, video |
-| **S · E · P** | Shapes, stamps, draw |
+| **V** | Select |
+| **L · I · A · Shift+V** | Link, image, voice memo, video |
+| **S · E · P · Shift+P** | Shapes, stamps, draw, the Pen |
 | **R · X** | Wireframe box, wireframe text |
 | **M** | Ask Mochi |
 | **F** | Focus on the selection |
 | **0** | Fit the whole board |
 | **Ctrl + scroll** | Zoom in even steps (…90 · 100 · 110 · 125…%). A touchpad pinch zooms smoothly |
-| **Ctrl+0**, or click the zoom % | Back to 100% |
+| **Ctrl + / Ctrl −** | Zoom in / out, the same steps |
+| **Shift+1** | Zoom to fit |
+| **Ctrl+0** | Back to 100% |
+| **click the zoom %** | Zoom menu: in, out, 100%, fit, 50 / 100 / 200% |
+| **Ctrl+] / Ctrl+[** | Bring forward / send backward (add Shift: all the way) |
+| **Alt + drag** | Drag a copy |
 | **Ctrl+Z / Ctrl+Shift+Z** | Undo / redo |
 | **Ctrl+G / Ctrl+Shift+G** | Group / ungroup, so things move together |
 | **Ctrl+C / Ctrl+X / Ctrl+V** | Copy, cut and paste cards, even onto another board |
